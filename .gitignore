@@ -1,3 +1,8 @@
+*.DS_Store
+.DS_Store?
+._*
+[Tt]humbs.db
+
 composer.phar
 vendor/
 
