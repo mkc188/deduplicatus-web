@@ -50,7 +50,7 @@ class Auth {
                 $ekey_key = $this->getCookie($_CONF['cookie_prefix'] . '_ekey');
                 $this->encryption_key = rtrim(
                     mcrypt_decrypt(
-                        MCRYPT_RIJNDAEL_128,
+                        MCRYPT_RIJNDAEL_256,
                         hex2bin($ekey_key),
                         hex2bin($session['key_ct']),
                         MCRYPT_MODE_CBC,
@@ -176,12 +176,12 @@ class Auth {
                 $hashed_pass = password_hash($password, PASSWORD_DEFAULT);
 
                 // create user's encryption key for all metafiles
-                $ekey = Rhumsaa\Uuid\Uuid::uuid4();
+                $ekey = bin2hex(mcrypt_create_iv(256/8, MCRYPT_DEV_URANDOM));
 
                 // encrypt the key with user's password
-                $key       = hex2bin(md5($password));
-                $iv        = mcrypt_create_iv(128/8, MCRYPT_DEV_URANDOM);
-                $encrypted = bin2hex(mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $key, $ekey, MCRYPT_MODE_CBC, $iv));
+                $key       = hash("sha256", $password, true);
+                $iv        = mcrypt_create_iv(256/8, MCRYPT_DEV_URANDOM);
+                $encrypted = bin2hex(mcrypt_encrypt(MCRYPT_RIJNDAEL_256, $key, $ekey, MCRYPT_MODE_CBC, $iv));
 
                 // insert to database
                 DB::query(
@@ -238,10 +238,11 @@ class Auth {
                 }
 
                 // decrypt encryption key for all metafiles
+                $key  = hash("sha256", $pass, true);
                 $ekey = rtrim(
                     mcrypt_decrypt(
-                        MCRYPT_RIJNDAEL_128,
-                        hex2bin(md5($pass)),
+                        MCRYPT_RIJNDAEL_256,
+                        $key,
                         hex2bin($user['key_ct']),
                         MCRYPT_MODE_CBC,
                         hex2bin($user['key_iv'])
@@ -249,10 +250,10 @@ class Auth {
 
                 // re-encrypt the encryption key
                 // ct and iv store in database, key store in client
-                $session_ekey_key = mcrypt_create_iv(128/8, MCRYPT_DEV_URANDOM);
-                $session_ekey_iv  = mcrypt_create_iv(128/8, MCRYPT_DEV_URANDOM);
+                $session_ekey_key = mcrypt_create_iv(256/8, MCRYPT_DEV_URANDOM);
+                $session_ekey_iv  = mcrypt_create_iv(256/8, MCRYPT_DEV_URANDOM);
                 $session_ekey_ct  = bin2hex(
-                    mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $session_ekey_key, $ekey, MCRYPT_MODE_CBC, $session_ekey_iv)
+                    mcrypt_encrypt(MCRYPT_RIJNDAEL_256, $session_ekey_key, $ekey, MCRYPT_MODE_CBC, $session_ekey_iv)
                     );
 
                 // create user session
