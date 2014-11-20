@@ -1,0 +1,13 @@
+<?php
+
+// Auth
+define('AUTH_SUCCESS', 0);
+define('AUTH_WRONG_CREDENTIALS', 1);
+define('AUTH_REFRESH_SESSION', 2);
+
+// Register
+define('REGISTER_SUCCESS', 0);
+define('REGISTER_USER_EXITS', 1);
+define('REGISTER_EMAIL_EXITS', 2);
+define('REGISTER_FIELD_INCOMPLETE', 3);
+define('REGISTER_REFRESH_SESSION', 4);

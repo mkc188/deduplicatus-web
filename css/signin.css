@@ -1,0 +1,51 @@
+body {
+  background: #eee url(../images/crossword.png);
+}
+
+
+.form-signin .form-control,
+.form-register .form-control {
+  position: relative;
+  height: auto;
+  -webkit-box-sizing: border-box;
+     -moz-box-sizing: border-box;
+          box-sizing: border-box;
+  padding: 10px;
+  font-size: 16px;
+}
+.form-signin .form-control:focus,
+.form-register .form-control:focus {
+  z-index: 2;
+}
+.form-signin input[type="text"],
+.form-register input[id="register-username"] {
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}
+.form-signin input[type="password"],
+.form-register input[id="register-password2"] {
+  margin-bottom: 10px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+.form-register input[id="register-email"],
+.form-register input[id="register-password"] {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}
+.form-signin div#signin-failed,
+.form-signin div#signin-success,
+.form-register div#register-failed,
+.form-register div#register-success {
+  display: none;
+  margin-bottom: 5px;
+}
+.register-form-group {
+  margin: 0px;
+}
+#register-continue {
+  display: none;
+}
+
