@@ -10,6 +10,7 @@ switch ($_parts[0]) {
     // -------------
     // vault list
     case 'vaults':
+        define('REQUIRE_AUTH', true);
         require_once('common.php');
         require_once('models/view.vaults.php');
         break;
