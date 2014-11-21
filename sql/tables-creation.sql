@@ -21,3 +21,10 @@ CREATE TABLE IF NOT EXISTS `sessions` (
   KEY `uid` (`uid`),
   CONSTRAINT `sessions_ibfk_1` FOREIGN KEY (`uid`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `metafiles` (
+  `id` char(36) COLLATE utf8_unicode_ci NOT NULL,
+  `iv` char(64) COLLATE utf8_unicode_ci NOT NULL,
+  `ct` mediumtext COLLATE utf8_unicode_ci NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
