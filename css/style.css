@@ -1,7 +1,39 @@
 body {
-  background-color: #fdfdfd;
+  background-color: #fefcff;
 }
 
 .navbar {
   background: #eee url(../images/crossword.png);
+}
+
+#add-device-failed, #otp-auth-failed {
+    display: none;
+}
+
+.vault-title-name { width: 25%; }
+.vault-title-mode { width: 15%; }
+.vault-title-clouds { width: 30%; }
+.vault-title-usage { width: 15%; }
+.vault-title-actions { width: 15%; }
+.vault-clouds-detail { display: none; }
+.vault-space-usage { text-align: center; }
+.vault-status-btn:hover, .vault-delete-btn:hover {
+    text-decoration: underline;
+    cursor: pointer;
+}
+.vault-clouds-expend, .vault-clouds-collapse {
+    cursor: pointer;
+}
+
+.addcloud-menu { margin-top: 40px; }
+.addcloud-selections button:hover { color: red; }
+.addcloud-select-arrow { margin-top: 40px; }
+
+.addcloud-list-title-cloud { width: 10%; }
+.addcloud-list-title-account { width: 30%; }
+.addcloud-list-title-space { width: 30%; }
+.addcloud-list-title-actions { width: 30%; }
+#addcloud-failed { display: none; }
+.addcloud-delete-item:hover {
+    cursor: pointer;
 }

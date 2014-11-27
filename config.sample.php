@@ -26,3 +26,30 @@ $_CONF['cookie_prefix']  = 'duplicatus';
  */
 $_CONF['subdirectory_install'] = true;
 define('APP_PATH', '/');
+
+/*
+ * Cloud Configuration
+ */
+$_CONF['cloud'] = array();
+
+// Dropbox
+$_CONF['cloud']['dropbox'] = array(
+    'key'    => '',
+    'secret' => '',
+    );
+
+// Google Drive
+$_CONF['cloud']['googledrive'] = array(
+    'client' => '',
+    'secret' => '',
+    );
+
+/*
+ * Client Configuration
+ */
+$_CONF['client'] = array();
+
+// allowed app key
+$_CONF['client']['keys'] = array(
+    ''
+    );

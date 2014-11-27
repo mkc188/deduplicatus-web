@@ -42,7 +42,7 @@ class Metafile {
         $instance->ct = mcrypt_encrypt(MCRYPT_RIJNDAEL_256, $instance->key, $instance->cx, MCRYPT_MODE_CBC, $instance->iv);
 
         if( $autosave ) {
-            $instance->save();
+            $instance->save(true);
         }
 
         return $instance;
@@ -115,7 +115,7 @@ class Metafile {
         $this->ct = mcrypt_encrypt(MCRYPT_RIJNDAEL_256, $this->key, $this->cx, MCRYPT_MODE_CBC, $this->iv);
 
         if( $autosave ) {
-            $this->save();
+            $this->save(false);
         }
     }
 
@@ -123,19 +123,26 @@ class Metafile {
     /*
      * Commit metafile changes in database
      *
+     * @param bool insertOnly use insert query only
      * @return bool success
      */
-    public function save() {
+    public function save($insertOnly) {
         if( empty($this->id) ) {
             return false;
         }
 
-        DB::insertUpdate('metafiles', array(
-          'id' => $this->id,
-          'ct' => bin2hex($this->ct),
-          'iv' => bin2hex($this->iv),
-        ));
-
+        if( $insertOnly ) {
+            DB::insert('metafiles', array(
+              'id' => $this->id,
+              'ct' => bin2hex($this->ct),
+              'iv' => bin2hex($this->iv),
+            ));
+        } else {
+            DB::update('metafiles', array(
+              'ct' => bin2hex($this->ct),
+              'iv' => bin2hex($this->iv),
+            ), "id=%s", $this->id);
+        }
         return true;
     }
 

@@ -15,21 +15,21 @@ if( $action == "register" ) {
         case REGISTER_USER_EXITS:
             $response = array(
                 'success'   => false,
-                'error_msg' => 'Username alreay used.'
+                'error_msg' => 'Username alreay used.',
                 );
             break;
 
         case REGISTER_EMAIL_EXITS:
             $response = array(
                 'success'   => false,
-                'error_msg' => 'Email address alreay used.'
+                'error_msg' => 'Email address alreay used.',
                 );
             break;
 
         case REGISTER_FIELD_INCOMPLETE:
             $response = array(
                 'success'   => false,
-                'error_msg' => 'Please fill in all fields.'
+                'error_msg' => 'Please fill in all fields.',
                 );
             break;
 
@@ -37,7 +37,7 @@ if( $action == "register" ) {
         default:
             $response = array(
                 'success'   => false,
-                'error_msg' => 'Encryption key expired. Please refresh.'
+                'error_msg' => 'Encryption key expired. Please refresh.',
                 );
             break;
     }
@@ -59,7 +59,7 @@ if( $action == "signin" ) {
         case AUTH_WRONG_CREDENTIALS:
             $response = array(
                 'success'   => false,
-                'error_msg' => 'Wrong Credentials.'
+                'error_msg' => 'Wrong Credentials.',
                 );
             break;
 
@@ -67,7 +67,7 @@ if( $action == "signin" ) {
         default:
             $response = array(
                 'success'   => false,
-                'error_msg' => 'Encryption key expired. Please refresh.'
+                'error_msg' => 'Encryption key expired. Please refresh.',
                 );
             break;
     }

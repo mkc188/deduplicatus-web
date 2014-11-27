@@ -9,14 +9,15 @@ switch ($_parts[0]) {
     // vault related
     // -------------
     // vault list
-    case 'vaults':
+    case 'dashboard':
         define('REQUIRE_AUTH', true);
         require_once('common.php');
-        require_once('models/view.vaults.php');
+        require_once('models/view.dashboard.php');
         break;
 
     // single vault operations
     case 'vault':
+        define('REQUIRE_AUTH', true);
         require_once('common.php');
         require_once('models/view.vault.php');
         break;
@@ -37,6 +38,8 @@ switch ($_parts[0]) {
 
     // api for clients
     case 'api':
+        define('IN_API', true);
+        require_once('common.php');
         require_once('models/view.api.php');
         break;
 

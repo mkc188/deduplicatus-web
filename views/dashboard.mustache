@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        {{>header}}
+        <!-- CSS Stylesheet -->
+        <link rel="stylesheet" href="{{app-path}}css/style.css">
+    </head>
+    <body>
+        {{>navbar}}
+        <div class="container">
+            <div class="pull-left">
+                <button class="btn btn-info" id="vault-list-refresh"><span class="glyphicon glyphicon-refresh"></span></button>
+                <button class="btn btn-danger" data-toggle="modal" data-target="#modal-new-vault"><span class="glyphicon glyphicon-plus"></span> New Vault</button>
+            </div>
+            <div class="clearfix"></div>
+
+            <table class="table table-hover vault-list">
+                <thead>
+                    <tr>
+                        <th class="vault-title-name">Name</th>
+                        <th class="vault-title-mode">Mode</th>
+                        <th class="vault-title-clouds">Cloud Storages</th>
+                        <th class="vault-title-usage">Space Used</th>
+                        <th class="vault-title-actions">Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <!-- Modal: New vault -->
+        <div class="modal" id="modal-new-vault" tabindex="-1" role="dialog" aria-labelledby="modal-new-vault-label" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                        <h4 class="modal-title" id="modal-new-vault-label">Create New Vault</h4>
+                    </div>
+                    <div class="modal-body" id="new-vault-form">
+                        <div class="alert alert-danger" role="alert" id="new-vault-failed">
+                            <span class="glyphicon glyphicon-exclamation-sign"></span>
+                            <span id="new-vault-error-msg"></span>
+                        </div>
+                        <form role="form">
+                            <div class="form-group has-warning">
+                                <label for="new-vault-name">Name</label>
+                                <div class="row"><div class="col-xs-8">
+                                    <input type="text" class="form-control new-vault-inputs input-sm" id="new-vault-name" autocapitalize="off" autocorrect="off">
+                                </div></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="new-vault-mode">Mode</label>
+                                <div class="row">
+                                    <div class="col-xs-4">
+                                        <label class="radio-inline">
+                                          <input type="radio" name="new-vault-mode" id="new-vault-mode-space-saving" value="space-saving" checked="checked">
+                                          <span class="glyphicon glyphicon-tasks"></span> Space Consolidating
+                                        </label>
+                                    </div>
+                                    <div class="col-xs-4">
+                                        <label class="radio-inline">
+                                          <input type="radio" name="new-vault-mode" id="new-vault-mode-jbod" value="jbod" disabled="disabled">
+                                          <span class="glyphicon glyphicon-hdd"></span> “JBOD”-like
+                                        </label>
+                                    </div>
+                                    <div class="col-xs-4">
+                                        <label class="radio-inline">
+                                          <input type="radio" name="new-vault-mode" id="new-vault-mode-two-copy" value="two-copy" disabled="disabled">
+                                          <span class="glyphicon glyphicon-random"></span> Two copies in multiple clouds
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-body" id="new-vault-result">
+                        <div class="alert alert-success" role="alert"><span class="glyphicon glyphicon-ok"></span> New vault has been created.</div>
+                        <p>To start using, please continue to add cloud stoage into vault.</p>
+                        <button type="button" class="btn btn-success" id="new-vault-continue">Continue</button>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-info" id="new-vault-submit">Submit</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Template: Vault list row -->
+        {{={{{ }}}=}}<!-- to output raw content below, change mustache to three brackets -->
+        <script id="template-vault-list-row" type="x-tmpl-mustache">
+            <tr data-id="{{id}}">
+                <td><a href="{{app-path}}vault/{{id}}">{{name}}</a></td>
+                {{#is-space-saving}}
+                <td><span class="glyphicon glyphicon-tasks"></span> Space Saving</td>
+                {{/is-space-saving}}
+                {{#is-jbod-mode}}
+                <td><span class="glyphicon glyphicon-hdd"></span> “JBOD” mode</td>
+                {{/is-jbod-mode}}
+                {{#is-two-copies}}
+                <td><span class="glyphicon glyphicon-random"></span> Two copies in multiple clouds</td>
+                {{/is-two-copies}}
+                <td>
+                    <span class="vault-clouds-summary">
+                        {{&vault-summary}}
+                        <span class="glyphicon glyphicon-chevron-down vault-clouds-expend pull-right"></span>
+                    </span>
+                    <span class="vault-clouds-detail">
+                        {{&vault-detail}}
+                        <span class="glyphicon glyphicon-chevron-up vault-clouds-collapse pull-right"></span>
+                    </span>
+                </td>
+                <td class="vault-space-usage">{{used-space}} / {{total-space}}</td>
+                <td>
+                    <!--<div class="text-info vault-status-btn"><span class="glyphicon glyphicon-info-sign"></span> Vault Status</div>-->
+                    <div class="text-danger vault-delete-btn"><span class="glyphicon glyphicon-remove"></span> Delete Vault</div>
+                </td>
+            </tr>
+        </script>
+        {{{={{ }}=}}}<!-- restore mustache setting -->
+
+        <!-- Template: Vault summary item -->
+        {{={{{ }}}=}}<!-- to output raw content below, change mustache to three brackets -->
+        <script id="template-vault-summary-item" type="x-tmpl-mustache">
+            <span class="vault-clouds-icon" data-toggle="tooltip" data-placement="bottom" title="{{account-name}}"><image src="{{app-path}}images/clouds/{{provider-name}}_s.png"></span>&nbsp;
+        </script>
+        {{{={{ }}=}}}<!-- restore mustache setting -->
+
+        <!-- Template: Vault detail item -->
+        {{={{{ }}}=}}<!-- to output raw content below, change mustache to three brackets -->
+        <script id="template-vault-detail-item" type="x-tmpl-mustache">
+            <div class="vault-clouds-icon-long"><image src="{{app-path}}images/clouds/{{provider-name}}_s.png"> {{account-name}} {{quota}}</div>
+        </script>
+        {{{={{ }}=}}}<!-- restore mustache setting -->
+
+        <script type="text/javascript" src="{{app-path}}js/lib/mustache.js"></script>
+        <script type="text/javascript" src="{{app-path}}js/lib/filesize.js"></script>
+        <script type="text/javascript" src="{{app-path}}js/ui.auth.js"></script>
+        <script type="text/javascript" src="{{app-path}}js/ui.dashboard.js"></script>
+    </body>
+</html>

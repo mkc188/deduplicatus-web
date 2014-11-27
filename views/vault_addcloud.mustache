@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        {{>header}}
+        <!-- CSS Stylesheet -->
+        <link rel="stylesheet" href="{{app-path}}css/style.css">
+    </head>
+    <body>
+        {{>navbar}}
+        <div class="container">
+            <h1>{{vault-name}}
+                <small>
+                    {{#is-space-saving}}
+                    <span class="glyphicon glyphicon-tasks"></span> Space Consolidating
+                    {{/is-space-saving}}
+                    {{#is-jbod-mode}}
+                    <span class="glyphicon glyphicon-hdd"></span> “JBOD” mode
+                    {{/is-jbod-mode}}
+                    {{#is-two-copies}}
+                    <span class="glyphicon glyphicon-random"></span> Two copies in multiple clouds
+                    {{/is-two-copies}}
+                </small>
+            </h1>
+
+            <div class="row addcloud-menu">
+                <div class="col-xs-4">
+                    <h3>Select one of the providers:</h3>
+                    <div class="alert alert-danger" role="alert" id="addcloud-failed">
+                        <span class="glyphicon glyphicon-exclamation-sign"></span>
+                        <span id="addcloud-error-msg"></span>
+                    </div>
+                    <div class="addcloud-selections">
+                        <button class="btn" type="button" data-cloud="googledrive">
+                          <image src="{{app-path}}images/clouds/googledrive_s.png"> Google Drive
+                        </button>
+                        <button class="btn" type="button" data-cloud="dropbox">
+                          <image src="{{app-path}}images/clouds/dropbox_s.png"> Dropbox
+                        </button>
+                    </div>
+                </div>
+                <div class="col-xs-1">
+                    <h1 class="addcloud-select-arrow"><span class="glyphicon glyphicon-chevron-right"></span></h1>
+                </div>
+                <div class="col-xs-7">
+                    <table class="table table-hover addcloud-list">
+                        <thead>
+                            <tr>
+                                <th class="addcloud-list-title-cloud"></th>
+                                <th class="addcloud-list-title-account">Account Name</th>
+                                <th class="addcloud-list-title-space">Quota</th>
+                                <th class="addcloud-list-title-actions">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="2" class="text-right"><!--Total Space:--></td>
+                                <td colspan="2"><span class="addcloud-total-space"><!--0GB--></span>
+                                    <div class="pull-right">
+                                        <button type="button" class="btn btn-danger" id="addcloud-finalize-submit">
+                                            <span class="glyphicon glyphicon-ok"></span> Finalize
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Template: Cloud list row -->
+        {{={{{ }}}=}}<!-- to output raw content below, change mustache to three brackets -->
+        <script id="template-cloud-list-row" type="x-tmpl-mustache">
+            <tr data-identifier="{{identifier}}">
+                <td class="text-center"><image src="{{app-path}}images/clouds/{{provider}}_s.png"></td>
+                <td>{{name}}</td>
+                <td>{{space}}</td>
+                <td>
+                    <div class="text-danger addcloud-delete-item"><span class="glyphicon glyphicon-remove"></span> Remove</div>
+                </td>
+            </tr>
+        </script>
+        {{{={{ }}=}}}<!-- restore mustache setting -->
+
+        <!-- Template: Cloud list empty -->
+        {{={{{ }}}=}}<!-- to output raw content below, change mustache to three brackets -->
+        <script id="template-cloud-list-empty" type="x-tmpl-mustache">
+            <tr>
+                <td class="text-center" colspan="4">
+                    Please add at least one cloud to continue.
+                </td>
+            </tr>
+        </script>
+        {{{={{ }}=}}}<!-- restore mustache setting -->
+
+
+
+        <script type="text/javascript">
+            var vault_id = '{{vault-id}}';
+            var previous_err = '{{previous-err}}';
+        </script>
+        <script type="text/javascript" src="{{app-path}}js/lib/mustache.js"></script>
+        <script type="text/javascript" src="{{app-path}}js/lib/filesize.js"></script>
+        <script type="text/javascript" src="{{app-path}}js/ui.auth.js"></script>
+        <script type="text/javascript" src="{{app-path}}js/ui.addcloud.js"></script>
+    </body>
+</html>

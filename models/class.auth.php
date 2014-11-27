@@ -10,7 +10,65 @@ class Auth {
     /*
      * Constructor
      */
-    public function __construct() {
+    public function __construct($raw_data = '') {
+        if( defined('IN_API') ) {
+            $this->__construct_api($raw_data);
+        } else {
+            $this->__construct_web();
+        }
+    }
+
+    public function __construct_api($raw_data) {
+        global $_CONF;
+
+        $json        = json_decode($raw_data);
+        $isJSONValid = ( json_last_error() == JSON_ERROR_NONE );
+
+        // skip construct class if input json is not valid 
+        if( $isJSONValid ) {
+            $token = ( !empty($json->session_token) ) ? $json->session_token : '';
+            $ekey  = ( !empty($json->session_key) ) ? $json->session_key : '';
+
+            $session_info = explode("-", $token);
+            if( count($session_info) == 2 ) {
+                $session = DB::queryFirstRow(
+                    "SELECT s.*, u.username FROM `sessions` as s, `users` as u WHERE s.`key` = %s AND u.`id` = s.`uid`",
+                    $session_info[0]
+                    );
+
+                if( !empty($session) && $session['value'] == $session_info[1] ) {
+                    // token in cookie is valid, user is signed on
+                    $this->uid         = intval($session['uid']);
+                    $this->username    = $session['username'];
+                    $this->ajax_token  = $session['ajax_token'];
+                    $this->session_key = $session['key'];
+
+                    // decrypt the encryption key in sessions table
+                    $this->encryption_key = rtrim(
+                        mcrypt_decrypt(
+                            MCRYPT_RIJNDAEL_256,
+                            hex2bin($ekey),
+                            hex2bin($session['key_ct']),
+                            MCRYPT_MODE_CBC,
+                            hex2bin($session['key_iv'])),
+                        "\0..\32");
+
+                    $time = time();
+
+                    // if the cookie expiry time is near, extends the session
+                    if( $session['time'] < $time + 3600 ) {
+                        $extended_time = $time + $_CONF['cookie_time'];
+
+                        DB::update('sessions', array(
+                            'time' => $extended_time,
+                        ), "`key` = %s AND `uid` = %i", $session['key'], $session['uid']);
+                    }
+                }
+            }
+        }
+    }
+
+    public function __construct_web() {
         global $_CONF;
 
         $has_essential_cookies = (
@@ -38,8 +96,8 @@ class Auth {
                 $cookie_key,
                 $cookie_uid
                 );
-            if( !empty($session) && $session['value'] == $this->getCookie($session['key']) ) {
 
+            if( !empty($session) && $session['value'] == $this->getCookie($session['key']) ) {
                 // token in cookie is valid, user is signed on
                 $this->uid         = intval($session['uid']);
                 $this->username    = $session['username'];
@@ -103,6 +161,16 @@ class Auth {
         }
 
         return $_SESSION['auth_aes_key'];
+    }
+
+
+    /*
+     * Return user's encryption key
+     *
+     * @return string
+     */
+    public function getEncryptionKey() {
+        return ( $this->valid() ) ? $this->encryption_key : '';
     }
 
 
@@ -205,10 +273,87 @@ class Auth {
 
 
     /*
+     * Sign in for API
+     *
+     * @param string raw data
+     * @return array of token and key / boolean false
+     */
+    public function signInApp($raw_data) {
+        global $_CONF;
+
+        $json        = json_decode($raw_data);
+        $isJSONValid = ( json_last_error() == JSON_ERROR_NONE );
+
+        if( $isJSONValid ) {
+            $appkey   = ( !empty($json->appkey) ) ? $json->appkey : '';
+            $user     = ( !empty($json->username) ) ? $json->username : '';
+            $pass     = ( !empty($json->password) ) ? $json->password : '';
+
+            if( !in_array($appkey, $_CONF['client']['keys']) ) {
+                return AUTH_INVAILD_APPKEY;
+            }
+
+            // query database for specific user 
+            $user = DB::queryFirstRow("SELECT `id`, `username`, `password`, `key_ct`, `key_iv` FROM `users` WHERE `username` = %s", $user);
+            if( isset($user['id']) && password_verify($pass, $user['password']) ) {
+                // check if the password hash need rehash or not
+                if( password_needs_rehash($user['password'], PASSWORD_DEFAULT) ) {
+                    DB::update('users', array(
+                        'password' => password_hash($pass, PASSWORD_DEFAULT),
+                    ), "id=%i", $user['id']);
+                }
+
+                // decrypt encryption key for all metafiles
+                $key  = hash("sha256", $pass, true);
+                $ekey = rtrim(
+                    mcrypt_decrypt(
+                        MCRYPT_RIJNDAEL_256,
+                        $key,
+                        hex2bin($user['key_ct']),
+                        MCRYPT_MODE_CBC,
+                        hex2bin($user['key_iv'])
+                    ), "\0..\32");
+
+                // re-encrypt the encryption key
+                // ct and iv store in database, key store in client
+                $session_ekey_key = mcrypt_create_iv(256/8, MCRYPT_DEV_URANDOM);
+                $session_ekey_iv  = mcrypt_create_iv(256/8, MCRYPT_DEV_URANDOM);
+                $session_ekey_ct  = bin2hex(
+                    mcrypt_encrypt(MCRYPT_RIJNDAEL_256, $session_ekey_key, $ekey, MCRYPT_MODE_CBC, $session_ekey_iv)
+                    );
+
+                // create user session
+                $time         = time() + $_CONF['cookie_time'];
+                $cookie_key   = substr(md5(microtime(true) * $user['id']), 0, 15);
+                $cookie_value = md5($time + mt_rand());
+
+                DB::query(
+                    "INSERT INTO `sessions` (`key`, `value`, `uid`, `ajax_token`, `key_ct`, `key_iv`, `time`) VALUES (%s, %s, %i, %s, %s, %s, %i)",
+                    $cookie_key,
+                    $cookie_value,
+                    $user['id'],
+                    '',
+                    $session_ekey_ct,
+                    bin2hex($session_ekey_iv),
+                    $time
+                    );
+
+                return array(
+                    'session_token' => $cookie_key . '-' . $cookie_value,
+                    'session_key'   => bin2hex($session_ekey_key),
+                    );
+            }
+        }
+
+        return AUTH_WRONG_CREDENTIALS;
+    }
+
+
+    /*
      * Sign in
      *
      * @param string raw data
-     * @return boolean
+     * @return integer
      */
     public function signIn($raw_data) {
         global $_CONF;
@@ -258,7 +403,7 @@ class Auth {
 
                 // create user session
                 $time         = time() + $_CONF['cookie_time'];
-                $cookie_key   = substr(md5($time * $user['id']), 0, 15);
+                $cookie_key   = substr(md5(microtime(true) * $user['id']), 0, 15);
                 $cookie_value = md5($time + mt_rand());
                 $ajax_token   = substr(md5($cookie_key . $cookie_value), 0, 15);
 

@@ -176,7 +176,7 @@ var signin = {
      * redirect user to dashboard if the authentication succeeded
      */
     redirect: function() {
-        window.location.href = 'vaults/';
+        window.location.href = 'dashboard/';
     },
 
     /*

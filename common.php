@@ -16,7 +16,11 @@ session_start();
 
 // User authorization handler
 require_once('models/class.auth.php');
-$auth = new Auth();
+if( defined('IN_API') ) {
+    $auth = new Auth(file_get_contents('php://input'));
+} else {
+    $auth = new Auth();
+}
 if( defined('REQUIRE_AUTH') && !$auth->valid() ) {
     header('Location: ' . APP_PATH);
     exit();

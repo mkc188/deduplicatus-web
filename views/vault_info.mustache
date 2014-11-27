@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        {{>header}}
+        <!-- CSS Stylesheet -->
+        <link rel="stylesheet" href="{{app-path}}css/style.css">
+    </head>
+    <body>
+        {{>navbar}}
+        <div class="container">
+            <h1>{{vault-name}}
+                <small>
+                    {{#is-space-saving}}
+                    <span class="glyphicon glyphicon-tasks"></span> Space Consolidating
+                    {{/is-space-saving}}
+                    {{#is-jbod-mode}}
+                    <span class="glyphicon glyphicon-hdd"></span> “JBOD” mode
+                    {{/is-jbod-mode}}
+                    {{#is-two-copies}}
+                    <span class="glyphicon glyphicon-random"></span> Two copies in multiple clouds
+                    {{/is-two-copies}}
+                </small>
+            </h1>
+
+            <div class="alert alert-success" role="alert"><span class="glyphicon glyphicon-ok"></span> Your file vault has been finalized. You can now use our Mac App to start to manage it.</div>
+
+            <div class="container">
+                <div class="row">
+                    <div class="col-xs-5">
+                        <h3>Included Cloud Storeage</h3>
+
+                        <table class="table table-hover vaultinfo-list">
+                            <thead>
+                                <tr>
+                                    <th class="vaultinfo-list-title-cloud"></th>
+                                    <th class="vaultinfo-list-title-account">Account Name</th>
+                                    <th class="vaultinfo-list-title-space">Quota</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="row">
+                    <button type="button" class="btn btn-primary" id="vaultinfo-back-dashboard">
+                        <span class="glyphicon glyphicon-chevron-left"></span> Back
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Template: Cloud list row -->
+        {{={{{ }}}=}}<!-- to output raw content below, change mustache to three brackets -->
+        <script id="template-cloud-list-row" type="x-tmpl-mustache">
+            <tr data-identifier="{{identifier}}">
+                <td class="text-center"><image src="{{app-path}}images/clouds/{{provider}}_s.png"></td>
+                <td>{{name}}<br />{{email}}</td>
+                <td>{{space}}</td>
+            </tr>
+        </script>
+        {{{={{ }}=}}}<!-- restore mustache setting -->
+
+        <script type="text/javascript">
+            var vault_id = '{{vault-id}}';
+        </script>
+        <script type="text/javascript" src="{{app-path}}js/lib/mustache.js"></script>
+        <script type="text/javascript" src="{{app-path}}js/lib/filesize.js"></script>
+        <script type="text/javascript" src="{{app-path}}js/ui.auth.js"></script>
+        <script type="text/javascript" src="{{app-path}}js/ui.vaultinfo.js"></script>
+    </body>
+</html>
