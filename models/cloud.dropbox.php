@@ -3,12 +3,20 @@ use \Dropbox as dbx;
 
 class Dropbox implements CloudStorage {
     private $vault;
-    private $identifier = 'DeDuplicatus/1.0';
+    private $identifier;
+    private $client;
+    private $clientName = 'DeDuplicatus/1.0';
 
     /*
      * Constructor
      */
-    public function __construct() {
+    public function __construct($vault = NULL, $identifier = '') {
+        $this->vault = $vault;
+        $this->identifier = $identifier;
+    }
+
+    public function loadAccessToken($token) {
+        $this->client = new dbx\Client($token, $this->clientName);
     }
 
     private function getWebAuth() {
@@ -16,7 +24,7 @@ class Dropbox implements CloudStorage {
 
         $appInfo        = dbx\AppInfo::loadFromJson($_CONF['cloud']['dropbox']['credentials']);
         $csrfTokenStore = new dbx\ArrayEntryStore($_SESSION, 'dropbox-auth-csrf-token');
-        $webAuth        = new dbx\WebAuth($appInfo, $this->identifier, $_CONF['cloud']['dropbox']['redirectUri'], $csrfTokenStore);
+        $webAuth        = new dbx\WebAuth($appInfo, $this->clientName, $_CONF['cloud']['dropbox']['redirectUri'], $csrfTokenStore);
 
         return $webAuth;
     }
@@ -64,7 +72,7 @@ class Dropbox implements CloudStorage {
         }
 
         if( !empty($accessToken) ) {
-            $dbxClient   = new dbx\Client($accessToken, $this->identifier);
+            $dbxClient   = new dbx\Client($accessToken, $this->clientName);
             $accountInfo = $dbxClient->getAccountInfo();
 
             $response = array(
@@ -80,6 +88,26 @@ class Dropbox implements CloudStorage {
         }
 
         return $response;
+    }
+
+    public function listFile($path = "/") {
+        $items = $this->client->getMetadataWithChildren($path);
+        $list  = array();
+
+        if( is_array($items["contents"]) ) {
+            foreach ($items["contents"] as $value) {
+                $list[] = array(
+                    'size'      => $value['bytes'],
+                    'name'      => basename($value['path']),
+                    'path'      => $value['path'],
+                    'modified'  => strtotime($value['modified']),
+                    'is_folder' => $value['is_dir'],
+                    'cloud'     => $this->identifier,
+                    );
+            }
+        }
+
+        return $list;
     }
 
 }

@@ -187,7 +187,7 @@ if( $action == "pre-oauth" ) {
                 if( array_key_exists($json->cloud, $_storageProviderClass) ) {
                     require_once('models/cloud.' . $json->cloud . '.php');
 
-                    $cloud = new $_storageProviderClass[$json->cloud]();
+                    $cloud = new $_storageProviderClass[$json->cloud]($vault);
                     $oauth = $cloud->createAuthUrl($vault->getId());
 
                     $error_code = VAULT_SUCCESS;

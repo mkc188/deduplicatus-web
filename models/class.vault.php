@@ -205,9 +205,25 @@ class Vault {
      *   the following methods are Space Saving mode
      *   other modes should be implemented in their own classes
      */
+    public function updateAccessToken($cloud_identifier, $access_token) {
+        if( !empty($this->id) ) {
+            $newCloudArr = array();
+
+            foreach ($this->credentialObj->clouds as $value) {
+                if( $value->identifier == $cloud_identifier ) {
+                    $value->access_token = $access_token;
+                }
+
+                $newCloudArr[] = $value;
+            }
+            $this->credentialObj->clouds = $newCloudArr;
+            $this->credentialRef->set( json_encode($this->credentialObj) );
+        }
+    }
+
     public function finalize() {
         if( !empty($this->id) ) {
-            if( count($this->credentialObj->clouds) > 1 ) {
+            if( count($this->credentialObj->clouds) >= 1 ) {
                 $totalSpace = 0;
 
                 foreach ($this->credentialObj->clouds as $value) {
@@ -224,5 +240,49 @@ class Vault {
         return false;
     }
 
+    public function listFile($path = '/', $cloudId = false) {
+        global $_storageProviderClass;
 
+        $response = array();
+
+        if( !empty($this->id) ) {
+            foreach ($this->credentialObj->clouds as $value) {
+                if( $path == '/' || ( $path != '/' && $cloud == $value->identifier ) ) {
+                    $cloudProvider = $value->type;
+                    if( array_key_exists($cloudProvider, $_storageProviderClass) ) {
+                        require_once('models/cloud.' . $cloudProvider . '.php');
+
+                        $cloud = new $_storageProviderClass[$cloudProvider]($this, $value->identifier);
+                        $cloud->loadAccessToken($value->access_token);
+
+                        $response = array_merge($response, $cloud->listFile($path));
+                    }
+                }
+            }
+        }
+
+        return $response;
+    }
+
+    public function get($path, $cloud = false) {
+        if( !empty($this->id) ) {
+
+
+
+
+        } else {
+            return array();
+        }
+    }
+
+    public function upload($path, $size, $cloud = false) {
+        if( !empty($this->id) ) {
+
+
+
+
+        } else {
+            return array();
+        }
+    }
 }
