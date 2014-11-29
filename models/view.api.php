@@ -170,3 +170,55 @@ if( $action == "get" ) {
     echo json_encode($response);
     exit();
 }
+
+if( $action == "rmr" ) {
+    $raw_data = file_get_contents('php://input');
+    $response = array();
+
+    $json         = json_decode($raw_data);
+    $isJSONValid  = ( json_last_error() == JSON_ERROR_NONE );
+
+    if( $isJSONValid && $auth->valid() && !empty($json->vault) ) {
+        // load required classes
+        require_once('models/class.metafile.php');
+        require_once('models/class.vault.php');
+        require_once('models/interface.cloudstorage.php');
+
+        $path    = ( !empty($json->path) ) ? $json->path : '/';
+        $file_id = ( !empty($json->file_id) ) ? $json->file_id : false;
+        $cloud   = ( !empty($json->cloud) ) ? $json->cloud : false;
+
+        $vault = Vault::load($json->vault);
+        if( !empty($vault) ) {
+            $error = $vault->rmr($path, $file_id, $cloud);
+            if( empty($error) ) {
+                $response = array(
+                    'success' => true,
+                    );
+            } else {
+                http_response_code(400);
+                $response = array(
+                    'is_authenticated' => true,
+                    'error_msg'        => $error,
+                    );
+            }
+        } else {
+            http_response_code(400);
+            $response = array(
+                'is_authenticated' => true,
+                'error_msg'        => 'File vault not owned.',
+                );
+        }
+
+    } else {
+        http_response_code(400);
+        $response = array(
+            'is_authenticated' => false,
+            'error_msg'        => 'Please re-sign in the client.',
+            );
+    }
+
+    header('Content-type: application/json');
+    echo json_encode($response);
+    exit();
+}

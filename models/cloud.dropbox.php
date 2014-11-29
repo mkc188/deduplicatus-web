@@ -153,4 +153,15 @@ class Dropbox implements CloudStorage {
 
         return $return;
     }
+
+    public function delete($path, $file_id) {
+        try {
+            $result = $this->client->delete($path);
+            $error  = false;
+        } catch(Exception $e) {
+            $error = $e->getMessage();
+        }
+
+        return $error;
+    }
 }

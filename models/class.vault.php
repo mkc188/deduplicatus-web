@@ -311,4 +311,28 @@ class Vault {
 
         return $response;
     }
+
+    public function rmr($path, $file_id, $cloud = false) {
+        global $_storageProviderClass;
+
+        $response = array();
+
+        if( !empty($this->id) && !empty($cloud) ) {
+            foreach ($this->credentialObj->clouds as $value) {
+                if( $cloud == $value->identifier ) {
+                    $cloudProvider = $value->type;
+                    if( array_key_exists($cloudProvider, $_storageProviderClass) ) {
+                        require_once('models/cloud.' . $cloudProvider . '.php');
+
+                        $cloud = new $_storageProviderClass[$cloudProvider]($this, $value->identifier);
+                        $cloud->loadAccessToken($value->access_token);
+
+                        $response = $cloud->delete($path, $file_id);
+                    }
+                }
+            }
+        }
+
+        return $response;
+    }
 }

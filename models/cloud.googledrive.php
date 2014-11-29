@@ -171,4 +171,15 @@ class GoogleDrive implements CloudStorage {
 
         return $return;
     }
+
+    public function delete($path, $file_id) {
+        try {
+            $file  = $this->drive->files->trash($file_id);
+            $error = false;
+        } catch (Exception $e) {
+            $error = $e->getMessage();
+        }
+
+        return $error;
+    }
 }
