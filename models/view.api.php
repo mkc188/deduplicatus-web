@@ -51,7 +51,7 @@ if( $action == "list" ) {
 
 if( $action == "ls" ) {
     $raw_data = file_get_contents('php://input');
-    $response = array("a" => $auth->uid);
+    $response = array();
 
     $json         = json_decode($raw_data);
     $isJSONValid  = ( json_last_error() == JSON_ERROR_NONE );
@@ -89,18 +89,33 @@ if( $action == "ls" ) {
     exit();
 }
 
-if( $action == "pre-load" ) {
+if( $action == "pre-upload" ) {
     $raw_data = file_get_contents('php://input');
     $response = array();
 
-    $json        = json_decode($raw_data);
-    $isJSONValid = ( json_last_error() == JSON_ERROR_NONE );
+    $json         = json_decode($raw_data);
+    $isJSONValid  = ( json_last_error() == JSON_ERROR_NONE );
 
-    if( $isJSONValid && $auth->valid() ) {
+    if( $isJSONValid && $auth->valid() && !empty($json->vault) ) {
+        // load required classes
+        require_once('models/class.metafile.php');
+        require_once('models/class.vault.php');
+        require_once('models/interface.cloudstorage.php');
 
+        $path  = ( !empty($json->path) ) ? $json->path : '/';
+        $size  = ( !empty($json->size) ) ? $json->size : false;
+        $cloud = ( !empty($json->cloud) ) ? $json->cloud : false;
 
-
-
+        $vault = Vault::load($json->vault);
+        if( !empty($vault) ) {
+            $response = $vault->upload($path, $size, $cloud);
+        } else {
+            http_response_code(400);
+            $response = array(
+                'is_authenticated' => true,
+                'error_msg'        => 'File vault not owned.',
+                );
+        }
 
     } else {
         http_response_code(400);
@@ -118,14 +133,30 @@ if( $action == "pre-load" ) {
 if( $action == "get" ) {
     $raw_data = file_get_contents('php://input');
     $response = array();
-    
-    $json        = json_decode($raw_data);
-    $isJSONValid = ( json_last_error() == JSON_ERROR_NONE );
 
-    if( $isJSONValid && $auth->valid() ) {
+    $json         = json_decode($raw_data);
+    $isJSONValid  = ( json_last_error() == JSON_ERROR_NONE );
 
+    if( $isJSONValid && $auth->valid() && !empty($json->vault) ) {
+        // load required classes
+        require_once('models/class.metafile.php');
+        require_once('models/class.vault.php');
+        require_once('models/interface.cloudstorage.php');
 
+        $path    = ( !empty($json->path) ) ? $json->path : '/';
+        $file_id = ( !empty($json->file_id) ) ? $json->file_id : false;
+        $cloud   = ( !empty($json->cloud) ) ? $json->cloud : false;
 
+        $vault = Vault::load($json->vault);
+        if( !empty($vault) ) {
+            $response = $vault->get($path, $file_id, $cloud);
+        } else {
+            http_response_code(400);
+            $response = array(
+                'is_authenticated' => true,
+                'error_msg'        => 'File vault not owned.',
+                );
+        }
 
     } else {
         http_response_code(400);

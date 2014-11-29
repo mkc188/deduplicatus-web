@@ -6,6 +6,7 @@ class GoogleDrive implements CloudStorage {
     private $client;
     private $services;
     private $drive;
+    private $access_token;
 
     /*
      * Constructor
@@ -35,9 +36,11 @@ class GoogleDrive implements CloudStorage {
             $this->client->refreshToken($json->refresh_token);
 
             // save token to metafile
+            $json = json_decode($this->client->getAccessToken());
             $this->vault->updateAccessToken($this->identifier, $this->client->getAccessToken());
         }
 
+        $this->access_token = $json->access_token;
         $this->drive = new Google_Service_Drive($this->client);
     }
 
@@ -106,7 +109,8 @@ class GoogleDrive implements CloudStorage {
 
             foreach ($results as $value) {
                 $list[] = array(
-                    'size'      => ( !empty($value->fileSize) ) ? $value->fileSize : 0,
+                    'file_id'   => $value->id,
+                    'size'      => ( !empty($value->fileSize) ) ? intval($value->fileSize) : 0,
                     'name'      => ( !empty($value->originalFilename) ) ? $value->originalFilename : $value->title,
                     'path'      => '/' . (( !empty($value->originalFilename) ) ? $value->originalFilename : $value->title),
                     'modified'  => strtotime($value->modifiedDate),
@@ -121,4 +125,50 @@ class GoogleDrive implements CloudStorage {
         return $list;
     }
 
+    public function getFile($path, $file_id) {
+        try {
+            $file = $this->drive->files->get($file_id);
+
+            $return = array(
+                'name'     => ( !empty($file->originalFilename) ) ? $file->originalFilename : $file->title,
+                'size'     => ( !empty($file->fileSize) ) ? intval($file->fileSize) : 0,
+                'modified' => strtotime($file->modifiedDate),
+                'splits'   => array(
+                    array(
+                        'start'  => 0,
+                        'end'    => ( !empty($file->fileSize) ) ? intval($file->fileSize) : 0,
+                        'url'    => $file->getDownloadUrl(),
+                        'header' => 'Authorization: Bearer '.$this->access_token,
+                        'mime'   => $file->getMimeType(),
+                        )
+                    ),
+                );
+            return $return;
+
+        } catch (Exception $e) {
+            return array();
+        }
+    }
+
+    public function upload($path, $size) {
+        if( !empty($path) && !empty($size) ) {
+
+            $return = array(
+                'split_file' => false,
+                'targets'    => array(
+                    array(
+                        'start'     => 0,
+                        'end'       => $size,
+                        'url'       => 'https://api-content.dropbox.com/1/files_put/auto'.$path,
+                        'header'    => 'Authorization: Bearer '.$this->access_token,
+                        'multipart' => true,
+                        'metadata'  => json_encode( array('title' => basename($path)) ),
+                        )
+                    ),
+                );
+
+        } 
+
+        return $return;
+    }
 }

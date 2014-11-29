@@ -5,6 +5,7 @@ class Dropbox implements CloudStorage {
     private $vault;
     private $identifier;
     private $client;
+    private $access_token;
     private $clientName = 'DeDuplicatus/1.0';
 
     /*
@@ -17,6 +18,7 @@ class Dropbox implements CloudStorage {
 
     public function loadAccessToken($token) {
         $this->client = new dbx\Client($token, $this->clientName);
+        $this->access_token = $token;
     }
 
     private function getWebAuth() {
@@ -97,6 +99,7 @@ class Dropbox implements CloudStorage {
         if( is_array($items["contents"]) ) {
             foreach ($items["contents"] as $value) {
                 $list[] = array(
+                    'file_id'   => $value['rev'],
                     'size'      => $value['bytes'],
                     'name'      => basename($value['path']),
                     'path'      => $value['path'],
@@ -110,4 +113,44 @@ class Dropbox implements CloudStorage {
         return $list;
     }
 
+    public function getFile($path, $file_id) {
+        $item = $this->client->getMetadata($path);
+
+        if( !empty($item['bytes']) ) {
+            $return = array(
+                'name'     => basename($item['path']),
+                'size'     => $item['bytes'],
+                'modified' => strtotime($item['modified']),
+                'splits'   => array(
+                    array(
+                        'start'  => 0,
+                        'end'    => $item['bytes'],
+                        'url'    => 'https://api-content.dropbox.com/1/files/auto'.$item['path'],
+                        'header' => 'Authorization: Bearer '.$this->access_token,
+                        'mime'   => $item['mime_type'],
+                        )
+                    ),
+                );
+        }
+
+        return $return;
+    }
+
+    public function upload($path, $size) {
+        if( !empty($path) && !empty($size) ) {
+            $return = array(
+                'split_file' => false,
+                'targets'    => array(
+                    array(
+                        'start'  => 0,
+                        'end'    => $size,
+                        'url'    => 'https://api-content.dropbox.com/1/files_put/auto'.$path,
+                        'header' => 'Authorization: Bearer '.$this->access_token,
+                        )
+                    ),
+                );
+        }
+
+        return $return;
+    }
 }
