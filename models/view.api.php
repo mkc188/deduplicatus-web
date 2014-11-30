@@ -102,7 +102,10 @@ if( $action == "pre-upload" ) {
         require_once('models/class.vault.php');
         require_once('models/interface.cloudstorage.php');
 
-        $path  = ( !empty($json->path) ) ? $json->path : '/';
+        $base  = ( !empty($json->base) ) ? $json->base : '/';
+        $name  = ( !empty($json->name) ) ? $json->name : '';
+        $path  = $base . $name;
+
         $size  = ( !empty($json->size) ) ? $json->size : false;
         $cloud = ( !empty($json->cloud) ) ? $json->cloud : false;
 
