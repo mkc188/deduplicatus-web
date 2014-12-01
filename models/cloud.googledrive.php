@@ -159,7 +159,7 @@ class GoogleDrive implements CloudStorage {
                     array(
                         'start'     => 0,
                         'end'       => $size,
-                        'url'       => 'https://api-content.dropbox.com/1/files_put/auto'.$path,
+                        'url'       => 'https://www.googleapis.com/upload/drive/v2/files?uploadType=multipart',
                         'header'    => 'Authorization: Bearer '.$this->access_token,
                         'multipart' => true,
                         'metadata'  => json_encode( array('title' => basename($path)) ),
