@@ -1,4 +1,4 @@
-duplicatus-web
+deduplicatus-web
 ==============
 
-Backend web service for Duplicatus.
+Backend web service for DeDuplicatus.
