@@ -1,11 +1,17 @@
-*.DS_Store
-.DS_Store?
+# OSX system files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# OSX thumbnails
 ._*
-[Tt]humbs.db
 
-composer.phar
-vendor/
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
 
-# Commit your application's lock file http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file
-# You may choose to ignore a library lock file http://getcomposer.org/doc/02-libraries.md#lock-file
-# composer.lock
+# Windows folder config file
+Desktop.ini
+
+# Nodejs packages
+node_modules/*
