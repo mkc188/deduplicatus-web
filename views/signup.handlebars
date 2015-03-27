@@ -1,0 +1,52 @@
+<div class="container">
+    <div class="jumbotron">
+        <div class="row">
+            <div class="col-md-6 col-md-push-1">
+                <h2><i class="fa fa-user"></i> Sign up for an account</h2>
+                <br />
+                <form>
+                    <div class="form-group">
+                        <label for="signup-email">Email address</label>
+                        <input type="email" class="form-control" id="signup-email" name="email" placeholder="Enter email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-password">Password (length >= 8)</label>
+                        <input type="password" class="form-control" id="signup-password" name="password" placeholder="Password" required>
+                    </div>
+                    <h5>Storage mode</h5>
+                    <div class="btn-group" data-toggle="buttons">
+                        <label class="btn btn-primary">
+                            <input type="radio" name="storageMode" value="file-manager" autocomplete="off" data-title="Storage mode" required> File Manager
+                        </label>
+                        <label class="btn btn-primary">
+                            <input type="radio" name="storageMode" value="deduplication" autocomplete="off" data-title="Storage mode"> Deduplication-enabled
+                        </label>
+                    </div>
+                    <br /><br />
+                    <div class="form-group">
+                        <button type="button" class="btn btn-warning" id="signup-submit">Submit</button>
+                    </div>
+                </form>
+            </div>
+            <div id="signup-error" class="col-md-4 col-md-push-1"></div>
+        </div>
+    </div>
+</div>
+
+<script id="warn-invalid-form-tpl" type="text/x-handlebars-template">
+    {{!-- before context-parser-handlebars:
+    <p>The followings are invalid:</p>
+    <ul>
+        \{{#fields}}
+        <li>\{{.}}</li>
+        \{{/fields}}
+    </ul>
+    --}}
+
+    <p>The followings are invalid:</p>
+    <ul>
+        \{{#fields}}
+        <li>\{{{yd .}}}</li>
+        \{{/fields}}
+    </ul>
+</script>

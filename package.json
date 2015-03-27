@@ -15,5 +15,18 @@
   "bugs": {
     "url": "https://github.com/retepmal/deduplicatus-web/issues"
   },
-  "homepage": "https://github.com/retepmal/deduplicatus-web"
+  "homepage": "https://github.com/retepmal/deduplicatus-web",
+  "dependencies": {
+    "any-db": "^2.1.0",
+    "any-db-mysql": "^2.1.2",
+    "any-db-transaction": "^2.2.2",
+    "body-parser": "^1.12.2",
+    "csurf": "^1.7.0",
+    "express": "^4.12.3",
+    "express-handlebars": "^2.0.0",
+    "express-session": "^1.10.4",
+    "express-validator": "^2.9.0",
+    "level": "^0.18.0",
+    "node-uuid": "^1.4.3"
+  }
 }

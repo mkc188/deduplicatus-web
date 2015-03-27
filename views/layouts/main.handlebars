@@ -1,0 +1,69 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="csrf-token" content="{{_csrf}}">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>DeDuplicatus: {{title}}</title>
+
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.3.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.4/css/bootstrap.min.css">
+        <link rel="stylesheet" href="/css/style.css">
+    </head>
+    <body>
+        <nav class="navbar navbar-inverse">
+            <div class="container">
+                <!-- Brand and toggle get grouped for better mobile display -->
+                <div class="navbar-header">
+                    <a class="navbar-brand" href="/">DeDuplicatus</a>
+                    <p class="navbar-text hidden-sm hidden-md">A Deduplication-Enabled Multi-Cloud App</p>
+                </div>
+
+                {{#if _user}}
+                    <form class="navbar-form navbar-right">
+                        <a class="btn btn-primary" href="/manage">Manage Account</a>
+                        <a class="btn btn-danger" href="/signout">Sign Out</a>
+                    </form>
+                    <p class="navbar-text navbar-right">{{_user}}</p>
+                {{else}}
+                    <form class="navbar-form navbar-right" id="signin-panel">
+                        <div class="form-group">
+                            <input type="email" class="form-control" name="email" placeholder="Email" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="password" class="form-control" name="password" placeholder="Password" required>
+                        </div>
+                        <button type="button" class="btn btn-success">Sign In</button>
+                    </form>
+                {{/if}}
+            </div>
+        </nav>
+
+        {{{body}}}
+
+        <script id="success-message-tpl" type="text/x-handlebars-template">
+            <div class="alert alert-success alert-dismissible" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                \{{{yd message}}}
+            </div>
+        </script>
+
+        <script id="error-message-tpl" type="text/x-handlebars-template">
+            <div class="alert alert-danger alert-dismissible" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                \{{{message}}}
+            </div>
+        </script>
+
+        <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.4/js/bootstrap.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/3.0.1/handlebars.min.js"></script>
+        <script src="/lib/xss-filters.1.0.6.min.js"></script>
+        <script src="/lib/secure-handlebars-helpers.min.1.0.4.js"></script>
+        <script src="/lib/ui.csrf.js"></script>
+        <script src="/lib/ui.auth.js"></script>
+        {{#each uiScripts}}
+        <script src="/lib/{{this}}"></script>
+        {{/each}}
+    </body>
+</html>
