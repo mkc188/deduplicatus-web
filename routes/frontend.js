@@ -10,7 +10,7 @@ module.exports = function(pool, config) {
             _user: req.session.user,
             title: 'Home',
             uiScripts: [
-                'URI.js',
+                'ui.auth.js',
                 'ui.home.js'
             ]
         });
@@ -25,7 +25,10 @@ module.exports = function(pool, config) {
             res.render('signup', {
                 _csrf: req.csrfToken(),
                 title: 'Signup',
-                uiScripts: ['ui.signup.js']
+                uiScripts: [
+                    'ui.auth.js',
+                    'ui.signup.js'
+                ]
             });
         }
     });
