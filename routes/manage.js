@@ -14,7 +14,11 @@ module.exports = function(pool, config) {
             _csrf: req.csrfToken(),
             _user: req.session.user,
             title: 'Manage Clouds',
-            uiScripts: ['ui.clouds.js']
+            uiScripts: [
+                'moment.js',
+                'moment-handlebars.js',
+                'ui.clouds.js'
+            ]
         });
     });
 

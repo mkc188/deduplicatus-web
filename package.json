@@ -21,6 +21,7 @@
     "any-db-mysql": "^2.1.2",
     "any-db-transaction": "^2.2.2",
     "body-parser": "^1.12.2",
+    "connect-redis": "^2.2.0",
     "csurf": "^1.7.0",
     "express": "^4.12.3",
     "express-handlebars": "^2.0.0",
@@ -28,6 +29,7 @@
     "express-validator": "^2.9.0",
     "fs-extra": "^0.16.5",
     "level": "^0.18.0",
-    "node-uuid": "^1.4.3"
+    "node-uuid": "^1.4.3",
+    "redis": "^0.12.1"
   }
 }

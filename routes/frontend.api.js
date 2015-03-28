@@ -34,6 +34,66 @@ module.exports = function(pool, config) {
     //
     //
 
+    // expected: /api/locks
+    app.get('/locks', function(req, res) {
+        pool.query('SELECT lockid, start_time, end_time, INET_NTOA(ip_address) AS ip_address FROM metafile_locks WHERE userid = ? ORDER BY start_time DESC LIMIT 5',
+            [req.session.uid],
+            function(error, result) {
+                if( error ) {
+                    return res.status(500).send('Database Error').end();
+                }
+
+                res.json(result.rows);
+            }
+        );
+    });
+
+    // expected: /api/unlock/(lockid)
+    app.post('/unlock/:lockid', function(req, res) {
+        var userid = req.session.uid;
+        var lockid = req.params.lockid;
+
+        var tx = begin(pool);
+        // confirm the current lockid is correct
+        tx.query('SELECT meta_lock FROM users WHERE userid = ? LIMIT 1',
+            [userid],
+            function(error, result) {
+                if( error ) {
+                    return res.status(500).send('Database Error').end();
+                }
+
+                if( result.rows[0].meta_lock == lockid ) {
+                    // remove lockid from users table
+                    tx.query('UPDATE users SET meta_lock = NULL WHERE userid = ? LIMIT 1',
+                        [userid],
+                        function(error, result) {
+                            if( error ) {
+                                tx.rollback();
+                                return res.status(500).send('Database Error').end();
+                            }
+
+                            // update the end time of lock in metafile_locks table
+                            tx.query('UPDATE metafile_locks SET end_time = ? WHERE lockid = ? AND userid = ? LIMIT 1',
+                                [Math.floor(new Date() / 1000), lockid, userid],
+                                function(error, result) {
+                                    if( error ) {
+                                        tx.rollback();
+                                        return res.status(500).send('Database Error').end();
+                                    }
+
+                                    tx.commit();
+                                    return res.status(200).end();
+                                }
+                            );
+                        }
+                    );
+                } else {
+                    return res.status(400).send('Invalid Request').end();
+                }
+            }
+        );
+    });
+
     // --------------------------------------------------
     //                    Manage Account
     //
@@ -62,7 +122,7 @@ module.exports = function(pool, config) {
             var saltedPassword = crypto.createHmac('sha256', salt);
                 saltedPassword.update(req.body.newPassword);
 
-            pool.query('UPDATE users SET salt = ?, password = ? WHERE userid = ?',
+            pool.query('UPDATE users SET salt = ?, password = ? WHERE userid = ? LIMIT 1',
                 [salt, saltedPassword.digest('base64'), userid],
                 function(error, result) {
                     if( error || result.affectedRows === 0 ) {

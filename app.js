@@ -4,6 +4,8 @@ var anyDB   = require('any-db'),
     config  = require('./config.js'),
     csrf    = require('csurf'),
     session = require('express-session'),
+    redis   = require('redis'),
+    redisStore = require('connect-redis')(session),
 
     authAPIRouter     = require(__dirname + '/routes/auth.api.js'),
     authMiddleware    = require(__dirname + '/routes/auth.middleware.js'),
@@ -13,6 +15,7 @@ var anyDB   = require('any-db'),
     clientAPIRouter   = require(__dirname + '/routes/client.api.js');
 
 var app = express();
+var redisClient = redis.createClient(config.REDIS_SOCKET);
 var pool = anyDB.createPool(config.DBURI, {
     min: 2, max: 20
 });
@@ -35,6 +38,7 @@ app.use(session({
     rolling: true,
     resave: false,
     saveUninitialized: false,
+    store: new redisStore({ client: redisClient })
 }));
 
 // csrf middleware, using express-session

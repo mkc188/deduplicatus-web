@@ -28,7 +28,7 @@
                 <h2><i class="fa fa-cloud"></i> Cloud Stoage Accounts</h2>
                 <br />
                 <div id="cloud-storage-message"></div>
-                <table class="table table-hover lock-status-records">
+                <table class="table table-hover cloud-storage-accounts">
                     <thead>
                         <tr>
                             <th>#</th>
@@ -38,6 +38,11 @@
                             <th>Actions</th>
                         </tr>
                     </thead>
+                    <tbody>
+                        <tr>
+                            <td class="text-center text-info" colspan="5"><i class="fa fa-refresh fa-spin loading-spin"></i> Loading...</td>
+                        </tr>
+                    </tbody>
                 </table>
             </div>
         </div>
@@ -45,6 +50,7 @@
         <div class="row">
             <div class="col-md-7 col-md-push-1">
                 <h2><i class="fa fa-lock"></i> Lock Status <small>(last 5 records)</small></h2>
+                <div class="text-warning text-right">Data may corrupted if the LevelDB access is manually unlocked.</div>
                 <br />
                 <table class="table table-hover lock-status-records">
                     <thead>
@@ -55,26 +61,8 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr class="warning">
-                            <td>
-                                <span class="lock-start-time">Monday, June 15, 2009 1:45 PM</span>
-                                <i class="fa fa-long-arrow-right"></i>
-                                <span class="lock-end-time active">current</span>
-                            </td>
-                            <td>123.456.789.123</td>
-                            <td><button type="button" class="btn btn-warning lock-unlock">Unlock</button></td>
-                        </tr>
                         <tr>
-                            <td>
-                                <span class="lock-start-time">Monday, June 15, 2009 1:45 PM</span>
-                                <i class="fa fa-long-arrow-right"></i>
-                                <span class="lock-end-time">Monday, June 15, 2009 1:45 PM</span>
-                            </td>
-                            <td>123.456.789.123</td>
-                            <td></td>
-                        </tr>
-                        <tr class="active">
-                            <td class="text-center" colspan="4">No Record</td>
+                            <td class="text-center text-info" colspan="4"><i class="fa fa-refresh fa-spin loading-spin"></i> Loading...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -83,3 +71,61 @@
         </div>
     </div>
 </div>
+
+<script id="lock-record-empty-tpl" type="text/x-handlebars-template">
+    <tr class="active">
+        <td class="text-center" colspan="4">No Record</td>
+    </tr>
+</script>
+
+<script id="lock-records-tpl" type="text/x-handlebars-template">
+    {{!-- before context-parser-handlebars:
+    \{{#locks}}
+        \{{#if end_time}}
+        <tr>
+            <td>
+                <span class="lock-start-time">\{{moment start_time}}</span>
+                <i class="fa fa-long-arrow-right"></i>
+                <span class="lock-end-time">\{{moment end_time}}</span>
+            </td>
+            <td>\{{ip_address}}</td>
+            <td></td>
+        </tr>
+        \{{else}}
+        <tr class="warning">
+            <td>
+                <span class="lock-start-time">\{{moment start_time}}</span>
+                <i class="fa fa-long-arrow-right"></i>
+                <span class="lock-end-time active">current</span>
+            </td>
+            <td>\{{ip_address}}</td>
+            <td><button type="button" class="btn btn-warning btn-lock-unlock" data-lockid="\{{lockid}}">Unlock</button></td>
+        </tr>
+        \{{/if}}
+    \{{/locks}}
+    --}}
+
+    \{{#locks}}
+        \{{#if end_time}}
+        <tr>
+            <td>
+                <span class="lock-start-time">\{{moment start_time}}</span>
+                <i class="fa fa-long-arrow-right"></i>
+                <span class="lock-end-time">\{{moment end_time}}</span>
+            </td>
+            <td>\{{ip_address}}</td>
+            <td></td>
+        </tr>
+        \{{else}}
+        <tr class="warning">
+            <td>
+                <span class="lock-start-time">\{{moment start_time}}</span>
+                <i class="fa fa-long-arrow-right"></i>
+                <span class="lock-end-time active">current</span>
+            </td>
+            <td>\{{ip_address}}</td>
+            <td><button type="button" class="btn btn-warning btn-lock-unlock" data-lockid="\{{lockid}}">Unlock</button></td>
+        </tr>
+        \{{/if}}
+    \{{/locks}}
+</script>

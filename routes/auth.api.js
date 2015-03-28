@@ -86,6 +86,7 @@ module.exports = function(pool, config) {
                     { type: 'put', key: 'metafile::userid', value: userid },
                     { type: 'put', key: 'metafile::secret', value: metaSecret },
                     { type: 'put', key: 'metafile::version', value: metaInitVersion },
+                    { type: 'put', key: 'metafile::finalized', value: 0 },
                     { type: 'put', key: 'clouds::count', value: 0 },
                     { type: 'put', key: 'clouds::storageMode', value: req.body.storageMode }
                 ], function(err) {
