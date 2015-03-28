@@ -1,0 +1,85 @@
+<div class="container">
+    <ul class="nav nav-tabs nav-inverse manage-navbar">
+        <li class="active"><a href="/manage/clouds">Manage Clouds</a></li>
+        <li><a href="/manage/account">Manage Account</a></li>
+    </ul>
+    <div class="jumbotron">
+        <div class="row">
+            <div class="col-md-10 col-md-push-1">
+                <h2><i class="fa fa-gear"></i> Stoage Mode: <span class="text-danger">Deduplication-enabled <small>account finalized</small></span></h2>
+                <br />
+                <div class="alert alert-info alert-dismissible" role="alert">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        Please add your cloud storage accounts below.
+                </div>
+                <div class="alert alert-info alert-dismissible" role="alert">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        In this storage mode, you may edit the list of cloud storage accounts at anytime.
+                </div>
+                <div class="alert alert-warning alert-dismissible" role="alert">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        In this storage mode, the list of cloud storage accounts <strong>CAN'T</strong> be modified after this account is finalized.
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-10 col-md-push-1">
+                <h2><i class="fa fa-cloud"></i> Cloud Stoage Accounts</h2>
+                <br />
+                <div id="cloud-storage-message"></div>
+                <table class="table table-hover lock-status-records">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Account</th>
+                            <th>Provider</th>
+                            <th>Space Used</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-7 col-md-push-1">
+                <h2><i class="fa fa-lock"></i> Lock Status <small>(last 5 records)</small></h2>
+                <br />
+                <table class="table table-hover lock-status-records">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>IP address</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="warning">
+                            <td>
+                                <span class="lock-start-time">Monday, June 15, 2009 1:45 PM</span>
+                                <i class="fa fa-long-arrow-right"></i>
+                                <span class="lock-end-time active">current</span>
+                            </td>
+                            <td>123.456.789.123</td>
+                            <td><button type="button" class="btn btn-warning lock-unlock">Unlock</button></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <span class="lock-start-time">Monday, June 15, 2009 1:45 PM</span>
+                                <i class="fa fa-long-arrow-right"></i>
+                                <span class="lock-end-time">Monday, June 15, 2009 1:45 PM</span>
+                            </td>
+                            <td>123.456.789.123</td>
+                            <td></td>
+                        </tr>
+                        <tr class="active">
+                            <td class="text-center" colspan="4">No Record</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="lock-message" class="col-md-3 col-md-push-1"></div>
+        </div>
+    </div>
+</div>

@@ -1,14 +1,13 @@
 var begin = require('any-db-transaction'),
-    config  = require('../config.js'),
     crypto = require('crypto'),
     bodyParser = require('body-parser'),
     express = require('express'),
     expressValidator = require('express-validator'),
-    fs = require('fs'),
+    fs = require('fs-extra'),
     level = require('level'),
     uuid = require('node-uuid');
 
-module.exports = function(pool) {
+module.exports = function(pool, config) {
     var app  = express.Router();
 
     app.use(bodyParser.urlencoded({extended:true}));
@@ -27,6 +26,7 @@ module.exports = function(pool) {
     }));
 
     var inputPattern = {
+        password: /^.{8,}$/,
         storageMode: /^(file\-manager|deduplication)$/
     };
 
@@ -36,7 +36,8 @@ module.exports = function(pool) {
         req.checkBody('email', 'Email')
             .isEmail();
         req.checkBody('password', 'Password')
-            .notEmpty();
+            .notEmpty()
+            .matches(inputPattern.password);
         req.checkBody('storageMode', 'Storage Mode')
             .notEmpty()
             .matches(inputPattern.storageMode);
@@ -58,7 +59,7 @@ module.exports = function(pool) {
         var tx = begin(pool);
         // create user record with the newly created leveldb
         tx.query('INSERT INTO users (userid, email, password, salt, meta_secret, meta_version) VALUES (?, ?, ?, ?, ?, ?)',
-            [userid, email, saltedPassword.digest('base64'), salt.toString('base64'), metaSecret, metaInitVersion],
+            [userid, email, saltedPassword.digest('base64'), salt, metaSecret, metaInitVersion],
             function(error, result) {
                 if( error ) {
                     if( error.errno == 1062 ) {
@@ -117,6 +118,7 @@ module.exports = function(pool) {
                             req.session.regenerate(function() {
                                 // set authenticated information
                                 req.session.authenticated = true;
+                                req.session.uid = userid;
                                 req.session.user = email;
 
                                 // return success message to client
@@ -160,6 +162,7 @@ module.exports = function(pool) {
                         req.session.regenerate(function() {
                             // set authenticated information
                             req.session.authenticated = true;
+                            req.session.uid = result.rows[0].userid;
                             req.session.user = result.rows[0].email;
 
                             return res.status(200).end();

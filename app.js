@@ -52,14 +52,14 @@ app.use('/lib', express.static(__dirname + '/public/javascripts'));
 app.use('/css', express.static(__dirname + '/public/stylesheets'));
 
 // serve desktop client requests
-app.use('/client', clientAPIRouter(pool));
+app.use('/client', clientAPIRouter(pool, config));
 
 // serve browser access
-app.use('/', frontEndRouter(pool));
-app.use('/api', authAPIRouter(pool));  // handle signup, signin and signout requests
-app.use('/', authMiddleware(pool));    // the below routes require authorization
-app.use('/api', frontEndAPIRouter(pool));
-app.use('/manage', manageRouter(pool));
+app.use('/', frontEndRouter(pool, config));
+app.use('/api', authAPIRouter(pool, config));  // handle signup, signin and signout requests
+app.use('/', authMiddleware(pool, config));    // the below routes require authorization
+app.use('/api', frontEndAPIRouter(pool, config));
+app.use('/manage', manageRouter(pool, config));
 
 // start listening at specific port
 app.listen(config.PORT, function () {

@@ -26,6 +26,7 @@
     "express-handlebars": "^2.0.0",
     "express-session": "^1.10.4",
     "express-validator": "^2.9.0",
+    "fs-extra": "^0.16.5",
     "level": "^0.18.0",
     "node-uuid": "^1.4.3"
   }

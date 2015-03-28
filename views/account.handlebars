@@ -1,0 +1,70 @@
+<div class="container">
+    <ul class="nav nav-tabs nav-inverse manage-navbar">
+        <li><a href="/manage/clouds">Manage Clouds</a></li>
+        <li class="active"><a href="/manage/account">Manage Account</a></li>
+    </ul>
+    <div class="jumbotron">
+        <div class="row">
+            <div class="col-md-6 col-md-push-1">
+                <h2><i class="fa fa-key"></i> Change Password</h2>
+                <br />
+                <form>
+                    <div class="form-group">
+                        <label for="current-password">Current Password</label>
+                        <input type="password" class="form-control" id="current-password" name="password" placeholder="Current Password" pattern="^.{8,}$" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-password">New Password (length >= 8)</label>
+                        <input type="password" class="form-control" id="new-password" name="newPassword" placeholder="New Password" pattern="^.{8,}$" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirm-password">Confirm Password</label>
+                        <input type="password" class="form-control" id="confirm-password" placeholder="Confirm Password" pattern="^.{8,}$" required>
+                    </div>
+                    <div class="form-group">
+                        <button type="button" class="btn btn-warning" id="change-password-submit">Submit</button>
+                    </div>
+                </form>
+            </div>
+            <div id="change-password-error" class="col-md-4 col-md-push-1"></div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 col-md-push-1">
+                <h2 class="text-danger"><i class="fa fa-exclamation-triangle"></i> Delete Account</h2>
+                <br />
+                <form>
+                    <p class="text-danger">Once you delete your account, there is no going back.</p>
+                    <p class="text-warning">Files in Deduplication-enabled Mode will not be accessible without this account.</p>
+                    <p class="text-danger">Please be certain.</p>
+                    <div class="form-group">
+                        <label for="delete-confirm-password">Current Password</label>
+                        <input type="password" class="form-control" id="delete-confirm-password" name="password" placeholder="Current Password" pattern="^.{8,}$" required>
+                    </div>
+                    <div class="form-group">
+                        <button type="button" class="btn btn-danger" id="delete-account-submit">Delete</button>
+                    </div>
+                </form>
+            </div>
+            <div id="delete-account-error" class="col-md-4 col-md-push-1"></div>
+        </div>
+    </div>
+</div>
+
+<script id="warn-invalid-form-tpl" type="text/x-handlebars-template">
+    {{!-- before context-parser-handlebars:
+    <p>The followings are invalid:</p>
+    <ul>
+        \{{#fields}}
+        <li>\{{.}}</li>
+        \{{/fields}}
+    </ul>
+    --}}
+
+    <p>The followings are invalid:</p>
+    <ul>
+        \{{#fields}}
+        <li>\{{{yd .}}}</li>
+        \{{/fields}}
+    </ul>
+</script>

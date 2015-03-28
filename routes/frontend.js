@@ -1,6 +1,6 @@
 var express = require('express');
 
-module.exports = function(pool) {
+module.exports = function(pool, config) {
     var app  = express.Router();
 
     // expected: /
@@ -9,7 +9,10 @@ module.exports = function(pool) {
             _csrf: req.csrfToken(),
             _user: req.session.user,
             title: 'Home',
-            uiScripts: []
+            uiScripts: [
+                'URI.js',
+                'ui.home.js'
+            ]
         });
     });
 

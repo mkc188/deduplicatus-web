@@ -1,6 +1,6 @@
 var express = require('express');
 
-module.exports = function(pool) {
+module.exports = function(pool, config) {
     var app  = express.Router();
 
     /*

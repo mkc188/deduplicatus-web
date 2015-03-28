@@ -9,7 +9,7 @@
 
     signup.submit = function(btn) {
         var form = $(btn).parents("form");
-        if( !checkForm(form) ) {
+        if( !checkForm(form, 'signup-password', 'signup-confirm-password') ) {
             return;
         }
 
@@ -48,7 +48,7 @@
                 var message = compiledTemplate.warnInvalidForm({fields: error.responseJSON});
 
             } else {
-                var message = "Unexpected Error";
+                var message = error.responseText;
             }
 
             var rendered = compiledTemplate.errorMessage({message: message});
@@ -60,7 +60,7 @@
     }
 
     // private function: check form validity
-    var checkForm = function(form) {
+    var checkForm = function(form, equalField1, equalField2) {
         $("#signup-error").text("");
         var invalidFields = [];
         var invalidRadio = [];
@@ -90,6 +90,17 @@
                 $(v).parent().addClass("has-error");
             }
         });
+
+        // check two fields are equal or not
+        if( typeof equalField1 != "undefined" && typeof equalField2 != "undefined" ) {
+            var field1 = $("#"+equalField1);
+            var field2 = $("#"+equalField2);
+
+            if( field1.val() != field2.val() ) {
+                field1.addClass("has-error");
+                field2.addClass("has-error");
+                invalidFields.push($("label[for=" + equalField1 + "]").text() + " not equal to " + $("label[for=" + equalField2 + "]").text());            }
+        }
 
         // show error if there is any invalid fields
         if( invalidFields.length > 0 ) {
