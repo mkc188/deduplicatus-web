@@ -5,6 +5,8 @@ var begin = require('any-db-transaction'),
     expressValidator = require('express-validator'),
     fs = require('fs-extra'),
     level = require('level'),
+    LevelPromise = require('level-promise'),
+    Promise = require('promise'),
     uuid = require('node-uuid');
 
 module.exports = function(pool, config) {
@@ -33,6 +35,321 @@ module.exports = function(pool, config) {
     //                    Manage Clouds
     //
     //
+
+    // expected: /api/clouds
+    app.get('/clouds', function(req, res) {
+        var userid = req.session.uid;
+        var db; // user's leveldb
+        var json = {
+            'storageMode': null,
+            'finalized': null,
+            'locked': null,
+            'clouds': {}
+        };
+
+        // obtain the current version of leveldb to get its path
+        pool.query('SELECT meta_version, meta_lock FROM users WHERE userid = ? LIMIT 1', [userid])
+            .then(
+                function(result) {
+                    var verionid = result.rows[0].meta_version;
+                    var leveldbPath = config.USER_DATA + "/" + userid + "/" + verionid;
+                    json.locked = !( result.rows[0].meta_lock == null );
+
+                    db = level(leveldbPath, function(err) {
+                        if( err ) {
+                            db.close();
+
+                            res.status(500).send('LevelDB Error').end();
+                        }
+                    });
+                    LevelPromise(db);
+                },
+                function(error) {
+                    res.status(500).send('Database Error').end();
+                }
+            )
+            // obtain storage mode
+            .then(
+                function() {
+                    return db.get('clouds::storageMode');
+                }
+            )
+            // obtain metafile is finalized or not
+            .then(
+                function(result) {
+                    json.storageMode = result;
+                    return db.get('metafile::finalized');
+                },
+                function(error) {
+                    db.close();
+
+                    res.status(500).send('LevelDB Error').end();
+                }
+            )
+            // obtain list of registered clouds
+            .then(
+                function(result) {
+                    json.finalized = ( parseInt(result) > 0 );
+
+                    return new Promise(function(resolve, reject) {
+                        var data = {};
+                        db.createReadStream({ 'gte': 'clouds::account::', 'lte': 'clouds::account::' + '\xFF' })
+                            .on('data', function(read) {
+                                data[read.key] = read.value;
+                            })
+                            .on('error', function(error) {
+                                res.status(500).send('LevelDB Error').end();
+                                return reject(error);
+                            })
+                            .on('close', function() {
+                                return resolve(data);
+                            })
+                            .on('end', function() {
+                                return resolve(data);
+                            });
+                    });
+                },
+                function(error) {
+                    res.status(500).send('LevelDB Error').end();
+                }
+            )
+            // process results, and return as json to client
+            .then(
+                function(result) {
+                    // close leveldb handler
+                    db.close();
+
+                    // only return cloud's identifier, type, account name to browser
+                    var clouds = {};
+
+                    var keyAllowed = ['type', 'accountName'];
+                    var regex = /^clouds::account::([0-9a-z\-]+)::([a-zA-Z]+)$/;
+                    for( var k in result ){
+                        var match = k.match(regex);
+                        var cloudid = match[1];
+                        var attr = match[2];
+                        var value = result[k];
+
+                        if( typeof clouds[cloudid] == "undefined" ) {
+                            clouds[cloudid] = {};
+                        }
+                        if( keyAllowed.indexOf(attr) >= 0 ) {
+                            clouds[cloudid][attr] = value;
+                        }
+                    }
+
+                    json.clouds = clouds;
+
+                    res.status(200).json(json).end();
+                },
+                function(error) {
+                    db.close();
+
+                    res.status(500).send('LevelDB Error').end();
+                }
+            );
+    });
+
+    // expected: /api/metafile/(cloudid)/remove
+    app.post('/metafile/:cloudid([0-9a-z\-]+)/remove', function(req, res) {
+        var userid = req.session.uid;
+        var cloudid = req.params.cloudid;
+        var db; // user's leveldb
+        var isFinalized;
+        var cloudClount;
+
+        // obtain the current version of leveldb to get its path
+        pool.query('SELECT meta_version, meta_lock FROM users WHERE userid = ? LIMIT 1', [userid])
+            .then(
+                function(result) {
+                    var verionid = result.rows[0].meta_version;
+                    var leveldbPath = config.USER_DATA + "/" + userid + "/" + verionid;
+                    locked = !( result.rows[0].meta_lock == null );
+
+                    if( locked ) {
+                        res.status(400).send('Metafile currently locked').end();
+                    }
+
+                    db = level(leveldbPath, function(err) {
+                        if( err ) {
+                            db.close();
+
+                            res.status(500).send('LevelDB Error').end();
+                        }
+                    });
+                    LevelPromise(db);
+                },
+                function(error) {
+                    res.status(500).send('Database Error').end();
+                }
+            )
+            // obtain cloud count
+            .then(
+                function() {
+                    return db.get('clouds::count');
+                }
+            )
+            // obtain metafile is finalized or not
+            .then(
+                function(result) {
+                    cloudClount = parseInt(result);
+                    return db.get('metafile::finalized');
+                }
+            )
+            .then(
+                function(result) {
+                    isFinalized = ( parseInt(result) > 0 );
+                    if( isFinalized ) {
+                        res.status(400).send('Metafile already finalized').end();
+                    }
+
+                    // find a list of keys to be removed
+                    return new Promise(function(resolve, reject) {
+                        var data = [];
+                        db.createKeyStream({ 'gte': 'clouds::account::' + cloudid + '::', 'lte': 'clouds::account::' + cloudid + '::' + '\xFF' })
+                            .on('data', function(value) {
+                                data.push(value);
+                            })
+                            .on('error', function(error) {
+                                res.status(500).send('LevelDB Error').end();
+                                return reject(error);
+                            })
+                            .on('close', function() {
+                                return resolve(data);
+                            })
+                            .on('end', function() {
+                                return resolve(data);
+                            });
+                    });
+                },
+                function(error) {
+                    db.close();
+
+                    res.status(500).send('LevelDB Error').end();
+                }
+            )
+            .then(
+                function(result) {
+                    var operations = [
+                        { type: 'put', key: 'clouds::count', value: cloudClount - 1 }
+                    ];
+                    for( var i in result ) {
+                        operations.push({ type: 'del', key: result[i] });
+                    }
+
+                    db.batch(operations, function(err) {
+                        if( err ) {
+                            db.close();
+                            res.status(500).send('LevelDB Error').end();
+                        }
+                    });
+
+                    db.close(function(err) {
+                        if( err ) {
+                            res.status(500).send('LevelDB Error').end();
+                        }
+
+                        res.status(200).end();
+                    });
+                },
+                function(error) {
+                    db.close();
+
+                    res.status(500).send('LevelDB Error').end();
+                }
+            );
+    });
+
+    // expected: /api/metafile/finalize
+    app.post('/metafile/finalize', function(req, res) {
+        var userid = req.session.uid;
+        var cloudid = req.params.cloudid;
+        var db; // user's leveldb
+        var isFinalized;
+        var storageMode;
+
+        // obtain the current version of leveldb to get its path
+        pool.query('SELECT meta_version, meta_lock FROM users WHERE userid = ? LIMIT 1', [userid])
+            .then(
+                function(result) {
+                    var verionid = result.rows[0].meta_version;
+                    var leveldbPath = config.USER_DATA + "/" + userid + "/" + verionid;
+                    locked = !( result.rows[0].meta_lock == null );
+
+                    if( locked ) {
+                        res.status(400).send('Metafile currently locked').end();
+                    }
+
+                    db = level(leveldbPath, function(err) {
+                        if( err ) {
+                            db.close();
+
+                            res.status(500).send('LevelDB Error').end();
+                        }
+                    });
+                    LevelPromise(db);
+                },
+                function(error) {
+                    res.status(500).send('Database Error').end();
+                }
+            )
+            // obtain cloud count
+            .then(
+                function() {
+                    return db.get('clouds::count');
+                }
+            )
+            // obtain storage mode
+            .then(
+                function(result) {
+                    if( parseInt(result) == 0 ) {
+                        res.status(400).send('Please add at least one cloud account').end();
+                    }
+                    return db.get('clouds::storageMode');
+                }
+            )
+            // obtain metafile is finalized or not
+            .then(
+                function(result) {
+                    storageMode = result;
+
+                    if( storageMode != 'deduplication' ) {
+                        res.status(400).send('Not supported').end();
+                    }
+                    return db.get('metafile::finalized');
+                },
+                function(error) {
+                    res.status(500).send('Database Error').end();
+                }
+            )
+            .then(
+                function(result) {
+                    isFinalized = ( parseInt(result) > 0 );
+                    if( isFinalized ) {
+                        res.status(400).send('Metafile already finalized').end();
+                    }
+
+                    db.put('metafile::finalized', 1, function(err) {
+                        if( err ) {
+                            res.status(500).send('LevelDB Error').end();
+                        }
+                    });
+
+                    db.close(function(err) {
+                        if( err ) {
+                            res.status(500).send('LevelDB Error').end();
+                        }
+
+                        res.status(200).end();
+                    });
+                },
+                function(error) {
+                    db.close();
+
+                    res.status(500).send('LevelDB Error').end();
+                }
+            );
+    });
 
     // expected: /api/locks
     app.get('/locks', function(req, res) {

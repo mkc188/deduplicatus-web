@@ -8,8 +8,6 @@
     };
     var compiledTemplate = {};
     home.init = function() {
-        var showMessageDialog = false;
-
         if( uri.fragment() in messageString ) {
             // compile "success-message-tpl" if needed
             if( typeof compiledTemplate.successMessage == "undefined" ) {

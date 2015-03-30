@@ -6,6 +6,10 @@ body {
   background-position: bottom;
 }
 
+a:hover {
+  text-decoration: none;
+}
+
 .jumbotron {
   background: rgb(238, 238, 238); /* This is for ie8 and below */
   background: rgba(238, 238, 238, 0.7);
@@ -36,4 +40,8 @@ ul.manage-navbar {
 .lock-end-time:not(.active) {
   display: block;
   margin-left: 30px;
+}
+
+.cloud-storage-accounts tfoot .form-group {
+  margin-bottom: 0px;
 }

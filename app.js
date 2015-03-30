@@ -1,4 +1,4 @@
-var anyDB   = require('any-db'),
+var anyDB   = require('any-db-promise'),
     express = require('express'),
     exphbs  = require('express-handlebars'),
     config  = require('./config.js'),
@@ -12,7 +12,8 @@ var anyDB   = require('any-db'),
     manageRouter      = require(__dirname + '/routes/manage.js'),
     frontEndRouter    = require(__dirname + '/routes/frontend.js'),
     frontEndAPIRouter = require(__dirname + '/routes/frontend.api.js'),
-    clientAPIRouter   = require(__dirname + '/routes/client.api.js');
+    clientAPIRouter   = require(__dirname + '/routes/client.api.js'),
+    cloudsRouter      = require(__dirname + '/routes/clouds.api.js');
 
 var app = express();
 var redisClient = redis.createClient(config.REDIS_SOCKET);
@@ -41,6 +42,9 @@ app.use(session({
     store: new redisStore({ client: redisClient })
 }));
 
+// serve desktop client requests
+app.use('/client', clientAPIRouter(pool, config));
+
 // csrf middleware, using express-session
 app.use(csrf({ cookie: false }));
 app.use(function(err, req, res, next) {
@@ -55,14 +59,12 @@ app.use('/images', express.static(__dirname + '/public/images'));
 app.use('/lib', express.static(__dirname + '/public/javascripts'));
 app.use('/css', express.static(__dirname + '/public/stylesheets'));
 
-// serve desktop client requests
-app.use('/client', clientAPIRouter(pool, config));
-
 // serve browser access
 app.use('/', frontEndRouter(pool, config));
 app.use('/api', authAPIRouter(pool, config));  // handle signup, signin and signout requests
 app.use('/', authMiddleware(pool, config));    // the below routes require authorization
 app.use('/api', frontEndAPIRouter(pool, config));
+app.use('/api/cloud', cloudsRouter(pool, config));
 app.use('/manage', manageRouter(pool, config));
 
 // start listening at specific port

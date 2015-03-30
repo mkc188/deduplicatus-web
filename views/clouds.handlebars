@@ -6,17 +6,17 @@
     <div class="jumbotron">
         <div class="row">
             <div class="col-md-10 col-md-push-1">
-                <h2><i class="fa fa-gear"></i> Stoage Mode: <span class="text-danger">Deduplication-enabled <small>account finalized</small></span></h2>
+                <h2 id="storage-mode"><i class="fa fa-gear"></i> Stoage Mode: <span class="text-danger"><i class="fa fa-refresh fa-spin loading-spin"></i> Loading...</span><small></small></h2>
                 <br />
-                <div class="alert alert-info alert-dismissible" role="alert">
+                <div class="alert alert-info alert-dismissible hidden message-add-cloud" role="alert">
                     <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                         Please add your cloud storage accounts below.
                 </div>
-                <div class="alert alert-info alert-dismissible" role="alert">
+                <div class="alert alert-info alert-dismissible hidden message-file-manager" role="alert">
                     <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                         In this storage mode, you may edit the list of cloud storage accounts at anytime.
                 </div>
-                <div class="alert alert-warning alert-dismissible" role="alert">
+                <div class="alert alert-warning alert-dismissible hidden message-deduplication" role="alert">
                     <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                         In this storage mode, the list of cloud storage accounts <strong>CAN'T</strong> be modified after this account is finalized.
                 </div>
@@ -32,7 +32,7 @@
                     <thead>
                         <tr>
                             <th>#</th>
-                            <th>Account</th>
+                            <th>Account Name</th>
                             <th>Provider</th>
                             <th>Actions</th>
                         </tr>
@@ -42,11 +42,12 @@
                             <td class="text-center text-info" colspan="4"><i class="fa fa-refresh fa-spin loading-spin"></i> Loading...</td>
                         </tr>
                     </tbody>
+                    <tfoot></tfoot>
                 </table>
             </div>
         </div>
 
-        <div class="row">
+        <div class="row locks-section hidden">
             <div class="col-md-7 col-md-push-1">
                 <h2><i class="fa fa-lock"></i> Lock Status <small>(last 5 records)</small></h2>
                 <div class="text-warning text-right">Data may corrupted if the LevelDB access is manually unlocked.</div>
@@ -70,6 +71,91 @@
         </div>
     </div>
 </div>
+
+<script id="cloud-storage-accounts-empty-tpl" type="text/x-handlebars-template">
+    <tr class="active">
+        <td class="text-center" colspan="4">No Record</td>
+    </tr>
+</script>
+
+<script id="cloud-storage-accounts-add-tpl" type="text/x-handlebars-template">
+    \{{#if finalize-btn}}
+    <tr class="info">
+        <td class="text-center" colspan="3">
+            <div class="form-group">
+            <i class="fa fa-plus"></i> Add
+            <button type="button" class="btn btn-default btn-add-cloud btn-cloud-actions" data-path="/api/cloud/googledrive/add"><i class="fa fa-google"></i> Google Drive&trade;</button>
+            <button type="button" class="btn btn-default btn-add-cloud btn-cloud-actions" data-path="/api/cloud/dropbox/add"><i class="fa fa-dropbox"></i> Dropbox</button>
+            <button type="button" class="btn btn-default btn-add-cloud btn-cloud-actions" data-path="/api/cloud/boxdotnet/add"><i class="fa fa-cube"></i> Box</button>
+            </div>
+        </td>
+        <td class="text-center">
+            <button type="button" class="btn btn-warning btn-finalize btn-cloud-actions">Finalize</button>
+        </td>
+    </tr>
+    \{{else}}
+    <tr class="info">
+        <td class="text-center" colspan="4">
+            <div class="form-group">
+            <i class="fa fa-plus"></i> Add
+            <button type="button" class="btn btn-default btn-add-cloud btn-cloud-actions" data-path="/api/cloud/googledrive/add"><i class="fa fa-google"></i> Google Drive&trade;</button>
+            <button type="button" class="btn btn-default btn-add-cloud btn-cloud-actions" data-path="/api/cloud/dropbox/add"><i class="fa fa-dropbox"></i> Dropbox</button>
+            <button type="button" class="btn btn-default btn-add-cloud btn-cloud-actions" data-path="/api/cloud/boxdotnet/add"><i class="fa fa-cube"></i> Box</button>
+            </div>
+        </td>
+    </tr>
+    \{{/if}}
+</script>
+
+<script id="cloud-storage-accounts-tpl" type="text/x-handlebars-template">
+    {{!-- before context-parser-handlebars:
+    \{{#each accounts}}
+    <tr data-cloudid="\{{@key}}">
+        <td>\{{math @index "+" 1}}</th>
+        <td>\{{accountName}}</td>
+        <td>
+            \{{#equal type 'googledrive' }}
+                <img src="/images/thumb_google_drive.png" class="front-cloud-logos"> Google Drive
+            \{{/equal}}
+            \{{#equal type 'dropbox' }}
+                <img src="/images/thumb_dropbox.png" class="front-cloud-logos"> Dropbox
+            \{{/equal}}
+            \{{#equal type 'boxdotnet' }}
+                <img src="/images/thumb_boxdotnet.png" class="front-cloud-logos"> Box
+            \{{/equal}}
+        </td>
+        <td>
+        \{{#if ../actions}}
+            <button type="button" class="btn btn-xs btn-danger btn-remove-cloud btn-cloud-actions">Remove</button>
+        \{{/if}}
+        </td>
+    </tr>
+    \{{/each}}
+    --}}
+
+    \{{#each accounts}}
+    <tr data-cloudid="\{{{yavd @key}}}">
+        <td>\{{{yd (math @index "+" 1)}}}</th>
+        <td>\{{{yd accountName}}}</td>
+        <td>
+            \{{#equal type 'googledrive' }}
+                <img src="/images/thumb_google_drive.png" class="front-cloud-logos"> Google Drive
+            \{{/equal}}
+            \{{#equal type 'dropbox' }}
+                <img src="/images/thumb_dropbox.png" class="front-cloud-logos"> Dropbox
+            \{{/equal}}
+            \{{#equal type 'boxdotnet' }}
+                <img src="/images/thumb_boxdotnet.png" class="front-cloud-logos"> Box
+            \{{/equal}}
+        </td>
+        <td>
+        \{{#if ../actions}}
+            <button type="button" class="btn btn-xs btn-danger btn-remove-cloud btn-cloud-actions">Remove</button>
+        \{{/if}}
+        </td>
+    </tr>
+    \{{/each}}
+</script>
 
 <script id="lock-record-empty-tpl" type="text/x-handlebars-template">
     <tr class="active">

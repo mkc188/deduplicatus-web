@@ -18,6 +18,11 @@ module.exports = function(pool, config) {
         });
     });
 
+    // expected: /manage/clouds/reload
+    app.get('/clouds/reload', function(req, res) {
+        res.redirect(302, '/manage/clouds');
+    });
+
     // expected: /manage/account
     app.get('/account', function(req, res) {
         res.render('account', {
