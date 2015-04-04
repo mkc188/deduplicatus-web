@@ -7,7 +7,7 @@ module.exports = function(pool, config) {
      * middleware to validate the authentication token
      */
     app.use('/', function(req, res) {
-        if( req.session && req.session.authenticated ) {
+        if( req.session && req.session.authenticated && !req.session.local_client ) {
             req.next();
         } else {
             if( req.xhr ) {

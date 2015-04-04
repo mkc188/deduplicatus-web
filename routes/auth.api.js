@@ -88,7 +88,8 @@ module.exports = function(pool, config) {
                     { type: 'put', key: 'metafile::version', value: metaInitVersion },
                     { type: 'put', key: 'metafile::finalized', value: 0 },
                     { type: 'put', key: 'clouds::count', value: 0 },
-                    { type: 'put', key: 'clouds::storageMode', value: req.body.storageMode }
+                    { type: 'put', key: 'clouds::storageMode', value: req.body.storageMode },
+                    { type: 'put', key: 'root::/::type', value: 'd' } // define root directory for deduplication mode
                 ], function(err) {
                     if( err ) {
                         tx.rollback();
@@ -163,6 +164,7 @@ module.exports = function(pool, config) {
                         req.session.regenerate(function() {
                             // set authenticated information
                             req.session.authenticated = true;
+                            req.session.local_client = false;
                             req.session.uid = result.rows[0].userid;
                             req.session.user = result.rows[0].email;
 

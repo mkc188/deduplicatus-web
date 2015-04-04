@@ -33,7 +33,7 @@ app.use(session({
     cookie: {
         path: '/',
         httpOnly: true,
-        maxAge: 3 * 24 * 60 * 60 * 1000, // in milliseconds
+        maxAge: 7 * 24 * 60 * 60 * 1000, // in milliseconds
     },
     secret: config.SESSION_SECRET,
     rolling: true,
