@@ -416,8 +416,8 @@ module.exports = function(pool, config) {
             );
     });
 
-    // expected: /client/complete
-    app.post('/complete', function(req, res) {
+    // expected: /client/commit
+    app.post('/commit', function(req, res) {
         // run input validations
         req.checkBody('lock')
             .notEmpty()
