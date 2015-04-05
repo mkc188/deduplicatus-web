@@ -1,5 +1,6 @@
 var express = require('express'),
     expressValidator = require('express-validator'),
+    begin = require('any-db-transaction'),
     bodyParser = require('body-parser'),
     crypto = require('crypto'),
     fs = require('fs-extra'),
@@ -132,6 +133,7 @@ module.exports = function(pool, config) {
     // expected: /client/lock
     app.post('/lock', function(req, res) {
         var userid = req.session.uid;
+        var db;
         var versionid;
         var leveldbPath;
         var lockid;
@@ -140,6 +142,9 @@ module.exports = function(pool, config) {
              req.connection.remoteAddress || 
              req.socket.remoteAddress ||
              req.connection.socket.remoteAddress;
+
+        var isFinalized;
+        var storageMode;
 
         pool.query('SELECT meta_version, meta_lock FROM users WHERE userid = ? LIMIT 1', [userid])
             .then(
@@ -153,28 +158,68 @@ module.exports = function(pool, config) {
                         return false;
                     }
 
-                    lockid = uuid.v4();
-                    return pool.query('INSERT INTO metafile_locks (lockid, userid, start_time, end_time, ip_address) VALUES (?, ?, ?, ?, INET_ATON(?))',
-                        [lockid, userid, Math.floor(new Date() / 1000), 0, ip]);
+                    db = level(leveldbPath, function(err) {
+                        if( err ) {
+                            db.close();
+
+                            res.status(500).send('LevelDB Error').end();
+                        }
+                    });
+                    LevelPromise(db);
+                    return db.get('metafile::finalized');
                 },
                 function(error) {
-                    return res.status(500).end();
+                    res.status(500).end();
+                    return false;
+                }
+            )
+            // obtain storage mode
+            .then(
+                function(result) {
+                    if( result === false ) return false;
+
+                    isFinalized = ( parseInt(result) > 0 );
+                    return db.get('clouds::storageMode');
+                },
+                function(error) {
+                    res.status(500).end();
                     return false;
                 }
             )
             .then(
                 function(result) {
-                    if( result == false ) return false;
+                    // close leveldb handler
+                    db.close();
+
+                    if( result === false ) return false;
+
+                    if( !isFinalized && result == 'deduplication' ) {
+                        res.status(412).end();
+                        return false;
+                    }
+
+                    lockid = uuid.v4();
+                    return pool.query('INSERT INTO metafile_locks (lockid, userid, start_time, end_time, ip_address) VALUES (?, ?, ?, ?, INET_ATON(?))',
+                        [lockid, userid, Math.floor(new Date() / 1000), 0, ip]);
+                },
+                function(error) {
+                    res.status(500).end();
+                    return false;
+                }
+            )
+            .then(
+                function(result) {
+                    if( result === false ) return false;
 
                     return pool.query('UPDATE users SET meta_lock = ? WHERE userid = ? LIMIT 1', [lockid, userid]);
                 },
                 function(error) {
-                    return res.status(500).end();
+                    res.status(500).end();
                     return false;
                 })
             .then(
                 function(result) {
-                    if( result == false ) return false;
+                    if( result === false ) return false;
 
                     var promiseAll = [];
                     var response = {
