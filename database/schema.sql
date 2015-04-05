@@ -76,9 +76,3 @@ ALTER TABLE `users`
 --
 ALTER TABLE `metafile_locks`
 ADD CONSTRAINT `metafile_locks_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`userid`);
-
---
--- Constraints for table `users`
---
-ALTER TABLE `users`
-ADD CONSTRAINT `users_ibfk_1` FOREIGN KEY (`meta_lock`) REFERENCES `metafile_locks` (`lockid`);
