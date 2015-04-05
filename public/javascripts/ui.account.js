@@ -6,6 +6,12 @@
         // bind submit bottons event
         $("#change-password-submit").click(function() { account.changePassword(this); });
         $("#delete-account-submit").click(function() { account.deleteAccount(this); });
+
+        $("form#delete-account").submit(function(event) {
+            event.preventDefault();
+            account.deleteAccount($(this).find("button")[0]);
+            return false;
+        });
     }
 
     account.changePassword = function(btn) {
