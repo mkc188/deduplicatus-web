@@ -839,11 +839,11 @@ module.exports = function(pool, config) {
                             if( err ) {
                                 return res.status(400).end();
                             }
-                        });
 
-                        // close leveldb handler
-                        db.close(function(error) {
-                            res.status(200).json(newTokens).end();
+                            // close leveldb handler
+                            db.close(function(error) {
+                                res.status(200).json(newTokens).end();
+                            });
                         });
 
                     } else {

@@ -95,39 +95,39 @@ module.exports = function(pool, config) {
                         tx.rollback();
                         return res.status(400).send("LevelDB Error").end();
                     }
-                });
 
-                // record file after leveldb handler is closed
-                db.close(function(err) {
-                    if( err ) {
-                        tx.rollback();
-                        return res.status(400).send("LevelDB Error").end();
-                    }
-
-                    // record the current version into database
-                    tx.query('INSERT INTO metafile_versions (versionid, userid, time, completed) VALUES (?, ?, ?, ?)',
-                        [metaInitVersion, userid, Math.floor(new Date() / 1000), 1],
-                        function(error, result) {
-                            if( error ) {
-                                tx.rollback();
-                                return res.status(400).send('Database Error').end();
-                            }
-
-                            // commit changes to database
-                            tx.commit();
-
-                            // user is now signed in to his/her new account
-                            req.session.regenerate(function() {
-                                // set authenticated information
-                                req.session.authenticated = true;
-                                req.session.uid = userid;
-                                req.session.user = email;
-
-                                // return success message to client
-                                return res.status(200).json(true).end();
-                            });
+                    // record file after leveldb handler is closed
+                    db.close(function(err) {
+                        if( err ) {
+                            tx.rollback();
+                            return res.status(400).send("LevelDB Error").end();
                         }
-                    );
+
+                        // record the current version into database
+                        tx.query('INSERT INTO metafile_versions (versionid, userid, time, completed) VALUES (?, ?, ?, ?)',
+                            [metaInitVersion, userid, Math.floor(new Date() / 1000), 1],
+                            function(error, result) {
+                                if( error ) {
+                                    tx.rollback();
+                                    return res.status(400).send('Database Error').end();
+                                }
+
+                                // commit changes to database
+                                tx.commit();
+
+                                // user is now signed in to his/her new account
+                                req.session.regenerate(function() {
+                                    // set authenticated information
+                                    req.session.authenticated = true;
+                                    req.session.uid = userid;
+                                    req.session.user = email;
+
+                                    // return success message to client
+                                    return res.status(200).json(true).end();
+                                });
+                            }
+                        );
+                    });
                 });
             }
         );

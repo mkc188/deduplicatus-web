@@ -173,13 +173,11 @@ module.exports = function(pool, config) {
                 function(result) {
                     cloudClount = parseInt(result);
 
-                    console.log("clouds.api.js: callback: oauthHandler");
                     return oauthHandler;
                 }
             )
             .then(
                 function(result) {
-                    console.log("clouds.api.js: callback: response");
                     newCloudAccount = result;
 
                     // load all cloud accounts in leveldb to check if any duplicated
@@ -187,7 +185,6 @@ module.exports = function(pool, config) {
                         var data = {};
                         db.createReadStream({ 'gte': 'clouds::account::', 'lte': 'clouds::account::' + '\xFF' })
                             .on('data', function(read) {
-                                console.log("clouds.api.js: callback: read stream");
                                 data[read.key] = read.value;
                             })
                             .on('error', function(error) {
@@ -195,11 +192,9 @@ module.exports = function(pool, config) {
                                 return reject(error);
                             })
                             .on('close', function() {
-                                console.log("clouds.api.js: callback: close stream");
                                 return resolve(data);
                             })
                             .on('end', function() {
-                                console.log("clouds.api.js: callback: end stream");
                                 return resolve(data);
                             });
                     });
@@ -243,7 +238,6 @@ module.exports = function(pool, config) {
                     if( writeRecord ) {
                         var cloudid = uuid.v4();
 
-                        console.log("clouds.api.js: callback: before batch");
                         // add cloud record into leveldb
                         db.batch([
                             { type: 'put', key: 'clouds::account::' + cloudid + '::type', value: newCloudAccount.type },
@@ -257,17 +251,15 @@ module.exports = function(pool, config) {
                             if( err ) {
                                 res.redirect(302, '/manage/clouds#add_error_leveldb');
                             }
-                        });
-                        console.log("clouds.api.js: callback: after batch");
 
-                        // redirect user back to manage page
-                        db.close(function(err) {
-                            if( err ) {
-                                res.redirect(302, '/manage/clouds#add_error_leveldb');
-                            }
+                            // redirect user back to manage page
+                            db.close(function(err) {
+                                if( err ) {
+                                    res.redirect(302, '/manage/clouds#add_error_leveldb');
+                                }
 
-                            console.log("clouds.api.js: callback: close leveldb");
-                            res.redirect(302, '/manage/clouds#add_success');
+                                res.redirect(302, '/manage/clouds#add_success');
+                            });
                         });
                     }
                 },
