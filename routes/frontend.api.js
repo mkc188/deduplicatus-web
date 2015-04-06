@@ -303,7 +303,9 @@ module.exports = function(pool, config) {
             .then(
                 function(result) {
                     if( parseInt(result) == 0 ) {
+                        db.close();
                         res.status(400).send('Please add at least one cloud account').end();
+                        return null;
                     }
                     return db.get('clouds::storageMode');
                 }
@@ -311,10 +313,14 @@ module.exports = function(pool, config) {
             // obtain metafile is finalized or not
             .then(
                 function(result) {
+                    if( result === null ) return null;
+
                     storageMode = result;
 
                     if( storageMode != 'deduplication' ) {
+                        db.close();
                         res.status(400).send('Not supported').end();
+                        return null;
                     }
                     return db.get('metafile::finalized');
                 },
@@ -324,13 +330,18 @@ module.exports = function(pool, config) {
             )
             .then(
                 function(result) {
+                    if( result === null ) return null;
+
                     isFinalized = ( parseInt(result) > 0 );
                     if( isFinalized ) {
+                        db.close();
                         res.status(400).send('Metafile already finalized').end();
+                        return null;
                     }
 
                     db.put('metafile::finalized', 1, function(err) {
                         if( err ) {
+                            db.close();
                             res.status(500).send('LevelDB Error').end();
                         }
                     });

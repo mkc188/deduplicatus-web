@@ -11,9 +11,9 @@ module.exports = {
         "KEY": process.env.DROPBOX_KEY,
         "SECRET": process.env.DROPBOX_SECRET
     },
-    "GOOGLEAPI": {
-        "KEY": process.env.GOOGLEAPI_KEY,
-        "SECRET": process.env.GOOGLEAPI_SECRET
+    "MSAPI": {
+        "KEY": process.env.MSAPI_KEY,
+        "SECRET": process.env.MSAPI_SECRET
     },
     "BOXDOTNET": {
         "KEY": process.env.BOXDOTNET_KEY,

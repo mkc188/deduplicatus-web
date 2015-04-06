@@ -84,7 +84,7 @@
         <td class="text-center" colspan="3">
             <div class="form-group">
             <i class="fa fa-plus"></i> Add
-            <button type="button" class="btn btn-default btn-add-cloud btn-cloud-actions" data-path="/api/cloud/googledrive/add"><i class="fa fa-google"></i> Google Drive&trade;</button>
+            <button type="button" class="btn btn-default btn-add-cloud btn-cloud-actions" data-path="/api/cloud/onedrive/add"><i class="fa fa-windows"></i> OneDrive</button>
             <button type="button" class="btn btn-default btn-add-cloud btn-cloud-actions" data-path="/api/cloud/dropbox/add"><i class="fa fa-dropbox"></i> Dropbox</button>
             <button type="button" class="btn btn-default btn-add-cloud btn-cloud-actions" data-path="/api/cloud/boxdotnet/add"><i class="fa fa-cube"></i> Box</button>
             </div>
@@ -98,7 +98,7 @@
         <td class="text-center" colspan="4">
             <div class="form-group">
             <i class="fa fa-plus"></i> Add
-            <button type="button" class="btn btn-default btn-add-cloud btn-cloud-actions" data-path="/api/cloud/googledrive/add"><i class="fa fa-google"></i> Google Drive&trade;</button>
+            <button type="button" class="btn btn-default btn-add-cloud btn-cloud-actions" data-path="/api/cloud/onedrive/add"><i class="fa fa-windows"></i> OneDrive</button>
             <button type="button" class="btn btn-default btn-add-cloud btn-cloud-actions" data-path="/api/cloud/dropbox/add"><i class="fa fa-dropbox"></i> Dropbox</button>
             <button type="button" class="btn btn-default btn-add-cloud btn-cloud-actions" data-path="/api/cloud/boxdotnet/add"><i class="fa fa-cube"></i> Box</button>
             </div>
@@ -114,8 +114,8 @@
         <td>\{{math @index "+" 1}}</th>
         <td>\{{accountName}}</td>
         <td>
-            \{{#equal type 'googledrive' }}
-                <img src="/images/thumb_google_drive.png" class="front-cloud-logos"> Google Drive
+            \{{#equal type 'onedrive' }}
+                <img src="/images/thumb_google_drive.png" class="front-cloud-logos"> OneDrive
             \{{/equal}}
             \{{#equal type 'dropbox' }}
                 <img src="/images/thumb_dropbox.png" class="front-cloud-logos"> Dropbox
@@ -138,8 +138,8 @@
         <td>\{{{yd (math @index "+" 1)}}}</th>
         <td>\{{{yd accountName}}}</td>
         <td>
-            \{{#equal type 'googledrive' }}
-                <img src="/images/thumb_google_drive.png" class="front-cloud-logos"> Google Drive
+            \{{#equal type 'onedrive' }}
+                <img src="/images/thumb_onedrive.png" class="front-cloud-logos">
             \{{/equal}}
             \{{#equal type 'dropbox' }}
                 <img src="/images/thumb_dropbox.png" class="front-cloud-logos"> Dropbox

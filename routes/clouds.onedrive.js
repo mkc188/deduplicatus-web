@@ -3,30 +3,24 @@ var querystring = require('querystring'),
     rp = require('request-promise');
 
 module.exports = function(config) {
-    var boxdotnet = {};
+    var onedrive = {};
 
-    boxdotnet.type = 'boxdotnet';
+    onedrive.type = 'onedrive';
 
     // return oauth path for redirection to user
-    boxdotnet.oauthAuthorizeUri = function(redirectUri, csrfToken) {
+    onedrive.oauthAuthorizeUri = function(redirectUri, csrfToken) {
         var query = {
             response_type: 'code',
-            client_id: config.BOXDOTNET.KEY,
+            client_id: config.MSAPI.KEY,
             redirect_uri: redirectUri,
-            state: csrfToken
+            scope: 'wl.signin wl.offline_access onedrive.readwrite'
         }
 
-        return 'https://app.box.com/api/oauth2/authorize?' + querystring.stringify(query);        
+        return 'https://login.live.com/oauth20_authorize.srf?' + querystring.stringify(query);        
     }
 
     // handle oauth code callback
-    boxdotnet.oauthCallback = function(session, query) {
-        if( session.oauthCSRF != query.state ) {
-            return new Promise(function(resolve, reject) {
-                return reject(null);
-            });
-        }
-
+    onedrive.oauthCallback = function(session, query) {
         if( typeof query.error != "undefined" ) {
             return new Promise(function(resolve, reject) {
                 return reject({
@@ -37,13 +31,13 @@ module.exports = function(config) {
         }
 
         var options = {
-            uri: 'https://app.box.com/api/oauth2/token',
+            uri: 'https://login.live.com/oauth20_token.srf',
             method: 'POST',
             body: querystring.stringify({
                 code: query.code,
                 grant_type: 'authorization_code',
-                client_id: config.BOXDOTNET.KEY,
-                client_secret: config.BOXDOTNET.SECRET,
+                client_id: config.MSAPI.KEY,
+                client_secret: config.MSAPI.SECRET,
                 redirect_uri: session.redirectUri
             }),
             headers: {
@@ -58,14 +52,15 @@ module.exports = function(config) {
                     response = JSON.parse(response);
 
                     metadata = {
-                        type: boxdotnet.type,
+                        type: onedrive.type,
                         accessToken: response.access_token,
-                        refreshToken: response.refresh_token
+                        refreshToken: response.refresh_token,
+                        cloudIdentifier: response.user_id
                     }
 
                     // get account info
                     var options = {
-                        uri: 'https://api.box.com/2.0/users/me',
+                        uri: 'https://api.onedrive.com/v1.0/drive/',
                         method: 'GET',
                         headers: {
                             'Authorization': 'Bearer ' + metadata.accessToken
@@ -81,13 +76,12 @@ module.exports = function(config) {
             .then(
                 function(response) {
                     response = JSON.parse(response);
-                    metadata.accountName = response.name;
-                    metadata.cloudIdentifier = response['id'];
+                    metadata.accountName = response.owner.user.displayName;
 
                     // find .deduplicatus folder's id if exists.
                     // otherwise will create a folder and return it's id.
                     var options = {
-                        uri: 'https://api.box.com/2.0/folders/0/items',
+                        uri: 'https://api.onedrive.com/v1.0/drive/root/children',
                         method: 'GET',
                         headers: {
                             'Authorization': 'Bearer ' + metadata.accessToken
@@ -103,10 +97,10 @@ module.exports = function(config) {
                 function(response) {
                     response = JSON.parse(response);
 
-                    for( var i = 0; i < response['entries'].length; i++ ) {
-                        var item = response['entries'][i];
+                    for( var i = 0; i < response['value'].length; i++ ) {
+                        var item = response['value'][i];
 
-                        if( item['type'] == 'folder' && item['name'] == config.CHUNKS_FOLDER ) {
+                        if( typeof item['folder'] != 'undefined' && item['name'] == config.CHUNKS_FOLDER ) {
                             metadata.folderId = item['id'];
                             return new Promise(function(resolve, reject) {
                                 resolve(null);
@@ -116,13 +110,12 @@ module.exports = function(config) {
 
                     // folder not found, create an new one and return it's id
                     var options = {
-                        uri: 'https://api.box.com/2.0/folders',
+                        uri: 'https://api.onedrive.com/v1.0/drive/root/children',
                         method: 'POST',
                         body: JSON.stringify({
                             name: config.CHUNKS_FOLDER,
-                            parent: {
-                                "id": "0"
-                            }
+                            folder: {},
+                            '@name.conflictBehavior': 'fail'
                         }),
                         headers: {
                             'Authorization': 'Bearer ' + metadata.accessToken,
@@ -141,7 +134,7 @@ module.exports = function(config) {
                     response = JSON.parse(response);
 
                     if( typeof metadata.folderId == 'undefined' ) {
-                        if( parseInt(response['id']) > 0 ) {
+                        if( typeof response['id'] != 'undefined' ) {
                             metadata.folderId = response['id'];
                         } else {
                             return null;
@@ -156,5 +149,5 @@ module.exports = function(config) {
             );
     }
 
-    return boxdotnet;
+    return onedrive;
 };

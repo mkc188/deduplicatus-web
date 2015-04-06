@@ -7,7 +7,7 @@ var bodyParser = require('body-parser'),
     uuid = require('node-uuid');
 
 module.exports = function(pool, config) {
-    var googledrive = require('./clouds.googledrive.js')(config),
+    var onedrive = require('./clouds.onedrive.js')(config),
         dropbox = require('./clouds.dropbox.js')(config),
         boxdotnet = require('./clouds.boxdotnet.js')(config);
 
@@ -18,7 +18,7 @@ module.exports = function(pool, config) {
     app.use(expressValidator());
 
     var cloudtype = [];
-        cloudtype.push(googledrive.type);
+        cloudtype.push(onedrive.type);
         cloudtype.push(dropbox.type);
         cloudtype.push(boxdotnet.type);
 
@@ -85,8 +85,8 @@ module.exports = function(pool, config) {
 
                     var redirection;
                     switch( req.params.cloudtype ) {
-                        case googledrive.type:
-                            redirection = googledrive.oauthAuthorizeUri(redirectUri, csrfToken);
+                        case onedrive.type:
+                            redirection = onedrive.oauthAuthorizeUri(redirectUri, csrfToken);
                             break;
                         case dropbox.type:
                             redirection = dropbox.oauthAuthorizeUri(redirectUri, csrfToken);
@@ -109,8 +109,8 @@ module.exports = function(pool, config) {
 
         var oauthHandler;
         switch( req.params.cloudtype ) {
-            case googledrive.type:
-                oauthHandler = googledrive.oauthCallback(req.session, req.query);
+            case onedrive.type:
+                oauthHandler = onedrive.oauthCallback(req.session, req.query);
                 break;
             case dropbox.type:
                 oauthHandler = dropbox.oauthCallback(req.session, req.query);
@@ -172,11 +172,14 @@ module.exports = function(pool, config) {
             .then(
                 function(result) {
                     cloudClount = parseInt(result);
+
+                    console.log("clouds.api.js: callback: oauthHandler");
                     return oauthHandler;
                 }
             )
             .then(
                 function(result) {
+                    console.log("clouds.api.js: callback: response");
                     newCloudAccount = result;
 
                     // load all cloud accounts in leveldb to check if any duplicated
@@ -184,6 +187,7 @@ module.exports = function(pool, config) {
                         var data = {};
                         db.createReadStream({ 'gte': 'clouds::account::', 'lte': 'clouds::account::' + '\xFF' })
                             .on('data', function(read) {
+                                console.log("clouds.api.js: callback: read stream");
                                 data[read.key] = read.value;
                             })
                             .on('error', function(error) {
@@ -191,9 +195,11 @@ module.exports = function(pool, config) {
                                 return reject(error);
                             })
                             .on('close', function() {
+                                console.log("clouds.api.js: callback: close stream");
                                 return resolve(data);
                             })
                             .on('end', function() {
+                                console.log("clouds.api.js: callback: end stream");
                                 return resolve(data);
                             });
                     });
@@ -237,6 +243,7 @@ module.exports = function(pool, config) {
                     if( writeRecord ) {
                         var cloudid = uuid.v4();
 
+                        console.log("clouds.api.js: callback: before batch");
                         // add cloud record into leveldb
                         db.batch([
                             { type: 'put', key: 'clouds::account::' + cloudid + '::type', value: newCloudAccount.type },
@@ -251,6 +258,7 @@ module.exports = function(pool, config) {
                                 res.redirect(302, '/manage/clouds#add_error_leveldb');
                             }
                         });
+                        console.log("clouds.api.js: callback: after batch");
 
                         // redirect user back to manage page
                         db.close(function(err) {
@@ -258,6 +266,7 @@ module.exports = function(pool, config) {
                                 res.redirect(302, '/manage/clouds#add_error_leveldb');
                             }
 
+                            console.log("clouds.api.js: callback: close leveldb");
                             res.redirect(302, '/manage/clouds#add_success');
                         });
                     }
