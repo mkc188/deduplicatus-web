@@ -69,7 +69,7 @@ module.exports = function(config) {
                         uri: 'https://api.dropbox.com/1/account/info',
                         method: 'GET',
                         headers: {
-                          'Authorization': 'Bearer ' + response.access_token
+                          'Authorization': 'Bearer ' + metadata.accessToken
                         }
                     };
 
@@ -83,6 +83,69 @@ module.exports = function(config) {
                 function(response) {
                     response = JSON.parse(response);
                     metadata.accountName = response.display_name;
+
+                    // find .deduplicatus folder if exists.
+                    // otherwise will create the folder
+                    var options = {
+                        uri: 'https://api.dropbox.com/1/metadata/auto/',
+                        method: 'GET',
+                        headers: {
+                          'Authorization': 'Bearer ' + metadata.accessToken
+                        }
+                    };
+
+                    return rp(options);
+                },
+                function(error) {
+                    return null;
+                }
+            )
+            .then(
+                function(response) {
+                    response = JSON.parse(response);
+
+                    for( var i = 0; i < response['contents'].length; i++ ) {
+                        var item = response['contents'][i];
+
+                        if( item['is_dir'] && item['path'] == "/" + config.CHUNKS_FOLDER ) {
+                            metadata.folderId = "/" + config.CHUNKS_FOLDER;
+                            return new Promise(function(resolve, reject) {
+                                resolve(null);
+                            });
+                        }
+                    }
+
+                    // folder not found, create an new one and return it's id
+                    var options = {
+                        uri: 'https://api.dropbox.com/1/fileops/create_folder',
+                        method: 'POST',
+                        body: querystring.stringify({
+                            root: 'auto',
+                            path: "/" + config.CHUNKS_FOLDER
+                        }),
+                        headers: {
+                            'Authorization': 'Bearer ' + metadata.accessToken,
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        }
+                    };
+
+                    return rp(options);
+                },
+                function(error) {
+                    return null;
+                }
+            )
+            .then(
+                function(response) {
+                    response = JSON.parse(response);
+
+                    if( typeof metadata.folderId == 'undefined' ) {
+                        if( response['is_dir'] && response['path'] == "/" + config.CHUNKS_FOLDER ) {
+                            metadata.folderId = "/" + config.CHUNKS_FOLDER;
+                        } else {
+                            return null;
+                        }
+                    }
 
                     return metadata;
                 },

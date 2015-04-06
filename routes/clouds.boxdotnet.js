@@ -48,7 +48,7 @@ module.exports = function(config) {
                 redirect_uri: session.redirectUri
             }),
             headers: {
-              'Content-Type': 'application/x-www-form-urlencoded'
+                'Content-Type': 'application/x-www-form-urlencoded'
             }
         };
 
@@ -69,7 +69,7 @@ module.exports = function(config) {
                         uri: 'https://api.box.com/2.0/users/me',
                         method: 'GET',
                         headers: {
-                          'Authorization': 'Bearer ' + response.access_token
+                            'Authorization': 'Bearer ' + metadata.accessToken
                         }
                     };
 
@@ -84,6 +84,70 @@ module.exports = function(config) {
                     response = JSON.parse(response);
                     metadata.accountName = response.name;
                     metadata.cloudIdentifier = response['id'];
+
+                    // find .deduplicatus folder's id if exists.
+                    // otherwise will create a folder and return it's id.
+                    var options = {
+                        uri: 'https://api.box.com/2.0/folders/0/items',
+                        method: 'GET',
+                        headers: {
+                            'Authorization': 'Bearer ' + metadata.accessToken
+                        }
+                    };
+                    return rp(options);
+                },
+                function(error) {
+                    return null;
+                }
+            )
+            .then(
+                function(response) {
+                    response = JSON.parse(response);
+
+                    for( var i = 0; i < response['entries'].length; i++ ) {
+                        var item = response['entries'][i];
+
+                        if( item['type'] == 'folder' && item['name'] == config.CHUNKS_FOLDER ) {
+                            metadata.folderId = item['id'];
+                            return new Promise(function(resolve, reject) {
+                                resolve(null);
+                            });
+                        }
+                    }
+
+                    // folder not found, create an new one and return it's id
+                    var options = {
+                        uri: 'https://api.box.com/2.0/folders',
+                        method: 'POST',
+                        body: JSON.stringify({
+                            name: config.CHUNKS_FOLDER,
+                            parent: {
+                                "id": "0"
+                            }
+                        }),
+                        headers: {
+                            'Authorization': 'Bearer ' + metadata.accessToken,
+                            'Content-Type': 'application/json'
+                        }
+                    };
+
+                    return rp(options);
+                },
+                function(error) {
+                    return null;
+                }
+            )
+            .then(
+                function(response) {
+                    response = JSON.parse(response);
+
+                    if( typeof metadata.folderId == 'undefined' ) {
+                        if( parseInt(response['id']) > 0 ) {
+                            metadata.folderId = response['id'];
+                        } else {
+                            return null;
+                        }
+                    }
 
                     return metadata;
                 },

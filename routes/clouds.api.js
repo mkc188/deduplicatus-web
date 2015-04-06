@@ -244,6 +244,7 @@ module.exports = function(pool, config) {
                             { type: 'put', key: 'clouds::account::' + cloudid + '::refreshToken', value: newCloudAccount.refreshToken },
                             { type: 'put', key: 'clouds::account::' + cloudid + '::cloudIdentifier', value: newCloudAccount.cloudIdentifier },
                             { type: 'put', key: 'clouds::account::' + cloudid + '::accountName', value: newCloudAccount.accountName },
+                            { type: 'put', key: 'clouds::account::' + cloudid + '::folderId', value: newCloudAccount.folderId },
                             { type: 'put', key: 'clouds::count', value: cloudClount + 1 }
                         ], function(err) {
                             if( err ) {
