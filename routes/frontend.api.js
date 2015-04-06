@@ -296,6 +296,7 @@ module.exports = function(pool, config) {
             // obtain cloud count
             .then(
                 function() {
+                    console.log("frontend.api.js: finalize: get clouds::count");
                     return db.get('clouds::count');
                 }
             )
@@ -307,6 +308,8 @@ module.exports = function(pool, config) {
                         res.status(400).send('Please add at least one cloud account').end();
                         return null;
                     }
+
+                    console.log("frontend.api.js: finalize: get clouds::storageMode");
                     return db.get('clouds::storageMode');
                 }
             )
@@ -322,6 +325,8 @@ module.exports = function(pool, config) {
                         res.status(400).send('Not supported').end();
                         return null;
                     }
+
+                    console.log("frontend.api.js: finalize: get metafile::finalized");
                     return db.get('metafile::finalized');
                 },
                 function(error) {
@@ -339,6 +344,7 @@ module.exports = function(pool, config) {
                         return null;
                     }
 
+                    console.log("frontend.api.js: finalize: put metafile::finalized");
                     db.put('metafile::finalized', 1, function(err) {
                         if( err ) {
                             db.close();
@@ -346,11 +352,13 @@ module.exports = function(pool, config) {
                         }
                     });
 
+                    console.log("frontend.api.js: before close");
                     db.close(function(err) {
                         if( err ) {
                             res.status(500).send('LevelDB Error').end();
                         }
 
+                        console.log("frontend.api.js: close leveldb");
                         res.status(200).end();
                     });
                 },
