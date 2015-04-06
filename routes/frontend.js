@@ -12,7 +12,8 @@ module.exports = function(pool, config) {
             uiScripts: [
                 'ui.auth.js',
                 'ui.home.js'
-            ]
+            ],
+            enableFileManager: config.ENABLE_FILE_MANAGER
         });
     });
 
@@ -28,7 +29,8 @@ module.exports = function(pool, config) {
                 uiScripts: [
                     'ui.auth.js',
                     'ui.signup.js'
-                ]
+                ],
+                enableFileManager: config.ENABLE_FILE_MANAGER
             });
         }
     });

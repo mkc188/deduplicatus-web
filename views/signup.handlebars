@@ -17,6 +17,7 @@
                         <label for="signup-confirm-password">Confirm Password</label>
                         <input type="password" class="form-control" id="signup-confirm-password" placeholder="Confirm Password" pattern="^.{8,}$" required>
                     </div>
+                    {{#if enableFileManager}}
                     <h5>Storage mode</h5>
                     <div class="btn-group" data-toggle="buttons">
                         <label class="btn btn-primary">
@@ -27,6 +28,9 @@
                         </label>
                     </div>
                     <br /><br />
+                    {{else}}
+                    <input type="hidden" name="storageMode" value="deduplication">
+                    {{/if}}
                     <div class="form-group">
                         <button type="button" class="btn btn-warning" id="signup-submit">Submit</button>
                     </div>
