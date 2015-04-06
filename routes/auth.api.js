@@ -89,7 +89,10 @@ module.exports = function(pool, config) {
                     { type: 'put', key: 'metafile::finalized', value: 0 },
                     { type: 'put', key: 'clouds::count', value: 0 },
                     { type: 'put', key: 'clouds::storageMode', value: req.body.storageMode },
-                    { type: 'put', key: 'root::/::type', value: 'd' } // define root directory for deduplication mode
+
+                    // define root directory for deduplication mode
+                    { type: 'put', key: 'folder::/::id', value: uuid.v4() },
+                    { type: 'put', key: 'folder::/::lastModified', value: Math.floor(new Date() / 1000) },
                 ], function(err) {
                     if( err ) {
                         tx.rollback();
