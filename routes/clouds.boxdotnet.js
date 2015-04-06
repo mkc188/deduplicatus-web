@@ -156,5 +156,39 @@ module.exports = function(config) {
             );
     }
 
+    // handle oauth refresh token request
+    boxdotnet.refreshToken = function(oldRefreshToken) {
+        var options = {
+            uri: 'https://app.box.com/api/oauth2/token',
+            method: 'POST',
+            body: querystring.stringify({
+                refresh_token: oldRefreshToken,
+                grant_type: 'refresh_token',
+                client_id: config.BOXDOTNET.KEY,
+                client_secret: config.BOXDOTNET.SECRET
+            }),
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        };
+
+        return rp(options)
+            .then(
+                function(response) {
+                    response = JSON.parse(response);
+
+                    var metadata = {
+                        accessToken: response.access_token,
+                        refreshToken: response.refresh_token,
+                    };
+
+                    return metadata;
+                },
+                function(error) {
+                    return null;
+                }
+            );
+    }
+
     return boxdotnet;
 };

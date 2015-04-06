@@ -149,5 +149,40 @@ module.exports = function(config) {
             );
     }
 
+    // handle oauth refresh token request
+    onedrive.refreshToken = function(oldRefreshToken) {
+        var options = {
+            uri: 'https://login.live.com/oauth20_token.srf',
+            method: 'POST',
+            body: querystring.stringify({
+                refresh_token: oldRefreshToken,
+                grant_type: 'refresh_token',
+                client_id: config.MSAPI.KEY,
+                client_secret: config.MSAPI.SECRET
+            }),
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        };
+
+        var metadata;
+        return rp(options)
+            .then(
+                function(response) {
+                    response = JSON.parse(response);
+
+                    metadata = {
+                        accessToken: response.access_token,
+                        refreshToken: response.refresh_token,
+                    };
+
+                    return metadata;
+                },
+                function(error) {
+                    return null;
+                }
+            );
+    }
+
     return onedrive;
 };

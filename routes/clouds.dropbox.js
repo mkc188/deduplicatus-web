@@ -155,5 +155,13 @@ module.exports = function(config) {
             );
     }
 
+    // handle oauth refresh token request
+    // caution: dropbox api do not implement refresh token mechanism
+    dropbox.refreshToken = function(oldRefreshToken) {
+        return new Promise(function(resolve, reject) {
+            return resolve(null);
+        });
+    }
+
     return dropbox;
 };

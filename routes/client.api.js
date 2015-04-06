@@ -692,5 +692,176 @@ module.exports = function(pool, config) {
         );
     });
 
+    // expected: /client/refreshToken
+    app.post('/refreshToken', function(req, res) {
+        // run input validations
+        req.checkBody('lock')
+            .notEmpty()
+            .matches(regex.uuid);
+        req.checkBody('cloud')
+            .notEmpty()
+            .matches(regex.uuid);
+
+        // reject when any validation error occurs
+        var errors = req.validationErrors();
+        if( errors ) {
+            return res.status(400).end();
+        }
+
+        var userid = req.session.uid;
+        var lockid = req.body.lock;
+        var cloud = req.body.cloud;
+
+        var db;
+        var versionid;
+        var leveldbPath;
+        var isFinalized;
+        var storageMode;
+        var targetCloud;
+
+        var onedrive = require('./clouds.onedrive.js')(config),
+            dropbox = require('./clouds.dropbox.js')(config),
+            boxdotnet = require('./clouds.boxdotnet.js')(config);
+
+        pool.query('SELECT meta_version, meta_lock FROM users WHERE userid = ? LIMIT 1', [userid])
+            .then(
+                function(result) {
+                    versionid = result.rows[0].meta_version;
+                    leveldbPath = config.USER_DATA + "/" + userid + "/" + versionid;
+                    var locked = !( result.rows[0].meta_lock == null );
+
+                    if( !locked ) {
+                        // required locked leveldb
+                        res.status(412).end();
+                        return false;
+                    }
+
+                    db = level(leveldbPath, function(err) {
+                        if( err ) {
+                            db.close();
+
+                            res.status(500).send('LevelDB Error').end();
+                        }
+                    });
+                    LevelPromise(db);
+                    return db.get('metafile::finalized');
+                },
+                function(error) {
+                    res.status(500).end();
+                    return false;
+                }
+            )
+            // obtain storage mode
+            .then(
+                function(result) {
+                    if( result === false ) return false;
+
+                    isFinalized = ( parseInt(result) > 0 );
+                    return db.get('clouds::storageMode');
+                },
+                function(error) {
+                    db.close();
+
+                    res.status(500).end();
+                    return false;
+                }
+            )
+            .then(
+                function(result) {
+                    if( result === false ) return false;
+
+                    if( !isFinalized && result == 'deduplication' ) {
+                        // deduplication-mode required finalized leveldb
+                        res.status(412).end();
+                        return false;
+                    }
+
+                    // if key not exists in leveldb, it will return 500 server error
+                    return db.get('clouds::account::' + cloud + '::type');
+                },
+                function(error) {
+                    db.close();
+
+                    res.status(500).end();
+                    return false;
+                }
+            )
+            .then(
+                function(result) {
+                    if( result === false ) return false;
+
+                    targetCloud = result;
+                    return db.get('clouds::account::' + cloud + '::refreshToken');
+                },
+                function(error) {
+                    db.close();
+
+                    res.status(500).end();
+                    return false;
+                }
+            )
+            .then(
+                function(result) {
+                    if( result === false ) return false;
+
+                    var refresh;
+                    switch( targetCloud ) {
+                        case onedrive.type:
+                            refresh = onedrive.refreshToken(result);
+                            break;
+                        case dropbox.type:
+                            refresh = dropbox.refreshToken(result);
+                            break;
+                        case boxdotnet.type:
+                            refresh = boxdotnet.refreshToken(result);
+                            break;
+                    }
+
+                    return refresh;
+                },
+                function(error) {
+                    db.close();
+
+                    res.status(500).end();
+                    return false;
+                }
+            )
+            .then(
+                function(newTokens) {
+                    if( newTokens === false ) return false;
+
+                    if( newTokens != null ) {
+                        // save new tokens (access token and refresh token pair) into leveldb
+                        db.batch([
+                            { type: 'put', key: 'clouds::account::' + cloud + '::accessToken', value: newTokens.accessToken },
+                            { type: 'put', key: 'clouds::account::' + cloud + '::refreshToken', value: newTokens.refreshToken }
+                        ], function(err) {
+                            if( err ) {
+                                return res.status(400).end();
+                            }
+                        });
+
+                        // close leveldb handler
+                        db.close(function(error) {
+                            res.status(200).json(newTokens).end();
+                        });
+
+                    } else {
+                        // no new access token returned
+                        db.close();
+
+                        res.status(403).end();
+                        return false;
+                    }
+                },
+                function(error) {
+                    db.close();
+
+                    res.status(500).end();
+                    return false;
+                }
+            );
+    });
+
     return app;
 };
